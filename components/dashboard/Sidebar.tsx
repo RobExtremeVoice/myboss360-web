@@ -54,7 +54,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         </div>
       </Link>
 
-      <nav className="mt-6 flex-1 space-y-6 overflow-y-auto pr-1">
+      <nav className="mt-7 flex-1 space-y-6 overflow-y-auto pr-1">
         {dashboardNavigationSections.map((section) => (
           <div key={section.title}>
             <p className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">

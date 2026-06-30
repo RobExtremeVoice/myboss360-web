@@ -30,18 +30,18 @@ export function NavigationItem({
       onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "flex items-start gap-3 rounded-[1.1rem] px-3 py-3 text-sm transition-colors",
+        "group flex items-start gap-3 rounded-[1.15rem] border px-3 py-3 text-sm transition-all duration-200",
         isActive
-          ? "bg-slate-950 text-white shadow-[0_16px_34px_-24px_rgba(15,23,42,0.55)]"
-          : "text-slate-600 hover:bg-white hover:text-slate-950"
+          ? "border-slate-950 bg-slate-950 text-white shadow-[0_16px_34px_-24px_rgba(15,23,42,0.42)]"
+          : "border-transparent text-slate-600 hover:border-black/6 hover:bg-slate-100 hover:text-slate-950"
       )}
     >
       <span
         className={cn(
-          "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border",
+          "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border transition-colors duration-200",
           isActive
             ? "border-white/10 bg-white/10 text-white"
-            : "border-black/8 bg-white text-slate-500"
+            : "border-black/8 bg-white text-slate-500 group-hover:text-slate-950"
         )}
       >
         {icon}

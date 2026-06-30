@@ -13,10 +13,11 @@ import { dashboardHomeContent } from "@/config/dashboard";
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 lg:space-y-10">
       <DashboardPageHeader
         title={dashboardHomeContent.title}
         description={dashboardHomeContent.description}
+        greeting={dashboardHomeContent.greeting}
       />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -25,61 +26,61 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-        <div className="space-y-6">
-          <SectionCard
-            title="Recent Activity"
-            description="The latest cross-functional updates affecting leadership visibility."
-            action={
-              <Button variant="outline" size="sm" className="rounded-full border-black/8 bg-white">
-                View all
-              </Button>
-            }
-          >
-            <ActivityList items={dashboardHomeContent.recentActivity} />
-          </SectionCard>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <SectionCard
-              title="Upcoming Meetings"
-              description="Meetings requiring awareness today."
-            >
-              <MeetingList items={dashboardHomeContent.upcomingMeetings} />
-            </SectionCard>
-
-            <SectionCard
-              title="Today's Priorities"
-              description="Items that need leadership action or review."
-            >
-              <PriorityList items={dashboardHomeContent.priorities} />
-            </SectionCard>
-          </div>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+        <div>
+          <ExecutiveBriefCard content={dashboardHomeContent.executiveBrief} />
         </div>
 
-        <ExecutiveBriefCard content={dashboardHomeContent.executiveBrief} />
+        <div className="space-y-6">
+          <SectionCard
+            title="Today's Executive Priorities"
+            description="High-leverage decisions and follow-through that need leadership attention."
+          >
+            <PriorityList items={dashboardHomeContent.priorities} />
+          </SectionCard>
+
+          <SectionCard
+            title="Top Opportunities"
+            description="Commercial opportunities with the strongest near-term leverage."
+          >
+            <OpportunityList items={dashboardHomeContent.recentOpportunities} />
+          </SectionCard>
+        </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)]">
         <SectionCard
-          title="Recent Documents"
-          description="Recently updated notes and files from across the workspace."
+          title="Upcoming Meetings"
+          description="Meetings requiring awareness today."
         >
-          <DocumentList items={dashboardHomeContent.recentDocuments} />
+          <MeetingList items={dashboardHomeContent.upcomingMeetings} />
         </SectionCard>
 
         <SectionCard
-          title="Recent CRM Opportunities"
-          description="High-signal opportunities currently in motion."
+          title="Quick Actions"
+          description="Common entry points for the next operating task."
         >
-          <OpportunityList items={dashboardHomeContent.recentOpportunities} />
+          <QuickActionsGrid actions={dashboardHomeContent.quickActions} />
+        </SectionCard>
+
+        <SectionCard
+          title="Recent Activity"
+          description="The latest cross-functional updates affecting leadership visibility."
+          action={
+            <Button variant="outline" size="sm" className="rounded-full border-black/8 bg-white">
+              View all
+            </Button>
+          }
+        >
+          <ActivityList items={dashboardHomeContent.recentActivity} />
         </SectionCard>
       </section>
 
       <SectionCard
-        title="Quick Actions"
-        description="Common entry points for the next operating task."
+        title="Recent Documents"
+        description="Recently updated notes and files from across the workspace."
       >
-        <QuickActionsGrid actions={dashboardHomeContent.quickActions} />
+        <DocumentList items={dashboardHomeContent.recentDocuments} />
       </SectionCard>
     </div>
   );

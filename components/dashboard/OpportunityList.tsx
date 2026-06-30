@@ -22,6 +22,15 @@ export function OpportunityList({ items }: OpportunityListProps) {
               <p className="mt-2 text-xs text-slate-400">{item.stage}</p>
             </div>
           </div>
+          <div className="mt-4 flex items-center justify-between gap-4">
+            <div className="h-1.5 flex-1 rounded-full bg-slate-200">
+              <div
+                className="h-1.5 rounded-full bg-slate-950"
+                style={{ width: item.confidence }}
+              />
+            </div>
+            <p className="text-xs font-medium text-slate-500">{item.confidence}</p>
+          </div>
         </article>
       ))}
     </div>

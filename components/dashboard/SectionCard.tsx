@@ -26,8 +26,8 @@ export function SectionCard({
         className
       )}
     >
-      <div className="flex items-start justify-between gap-4 border-b border-black/6 px-6 py-5">
-        <div>
+      <div className="flex flex-col gap-3 border-b border-black/6 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold tracking-[-0.02em] text-slate-950">
             {title}
           </h2>

@@ -15,7 +15,7 @@ export function QuickActionsGrid({ actions }: QuickActionsGridProps) {
           key={action.label}
           type="button"
           variant="outline"
-          className="h-auto items-start justify-between rounded-[1.25rem] border-black/8 bg-slate-50/70 px-4 py-4 text-left text-sm text-slate-950 hover:bg-white"
+          className="h-auto items-start justify-between rounded-[1.35rem] border-black/8 bg-slate-50/70 px-4 py-4 text-left text-sm text-slate-950 hover:bg-white"
         >
           <span className="min-w-0">
             <span className="block font-medium">{action.label}</span>
