@@ -1,13 +1,37 @@
 import { appRoutes } from "@/config/routes";
 
-export type NavigationItem = {
+export type MarketingNavigationItem = {
   label: string;
   href: string;
   description?: string;
   featureKey?: string;
 };
 
-export const marketingNavigation: NavigationItem[] = [
+export type DashboardNavigationIcon =
+  | "layout-dashboard"
+  | "users"
+  | "folder-kanban"
+  | "check-square"
+  | "calendar-days"
+  | "wallet"
+  | "file-text"
+  | "sparkles"
+  | "bar-chart-3"
+  | "settings";
+
+export type DashboardNavigationItem = {
+  label: string;
+  href: string;
+  description: string;
+  icon: DashboardNavigationIcon;
+};
+
+export type DashboardNavigationSection = {
+  title: string;
+  items: DashboardNavigationItem[];
+};
+
+export const marketingNavigation: MarketingNavigationItem[] = [
   {
     label: "Platform",
     href: "/#platform",
@@ -35,40 +59,90 @@ export const marketingNavigation: NavigationItem[] = [
   },
 ];
 
-export const dashboardNavigation: NavigationItem[] = [
+export const dashboardNavigationSections: DashboardNavigationSection[] = [
   {
-    label: "Workspace",
-    href: appRoutes.dashboard.workspace,
-    description: "Executive workspace and operating overview.",
+    title: "Overview",
+    items: [
+      {
+        label: "Dashboard",
+        href: appRoutes.dashboard.home,
+        description: "Executive overview and operating pulse.",
+        icon: "layout-dashboard",
+      },
+    ],
   },
   {
-    label: "Projects",
-    href: appRoutes.dashboard.projects,
-    description: "Project and delivery management.",
+    title: "Operations",
+    items: [
+      {
+        label: "CRM",
+        href: appRoutes.dashboard.crm,
+        description: "Customer relationships and pipeline management.",
+        icon: "users",
+      },
+      {
+        label: "Projects",
+        href: appRoutes.dashboard.projects,
+        description: "Project execution and delivery tracking.",
+        icon: "folder-kanban",
+      },
+      {
+        label: "Tasks",
+        href: appRoutes.dashboard.tasks,
+        description: "Task ownership and follow-through.",
+        icon: "check-square",
+      },
+      {
+        label: "Calendar",
+        href: appRoutes.dashboard.calendar,
+        description: "Schedule, events, and meeting planning.",
+        icon: "calendar-days",
+      },
+      {
+        label: "Finance",
+        href: appRoutes.dashboard.finance,
+        description: "Financial visibility and billing workflows.",
+        icon: "wallet",
+      },
+      {
+        label: "Documents",
+        href: appRoutes.dashboard.documents,
+        description: "Documents, notes, and shared knowledge.",
+        icon: "file-text",
+      },
+    ],
   },
   {
-    label: "CRM",
-    href: appRoutes.dashboard.crm,
-    description: "Customers, contacts, and deal management.",
+    title: "Intelligence",
+    items: [
+      {
+        label: "AI Assistant",
+        href: appRoutes.dashboard.assistant,
+        description: "AI briefings, recommendations, and support.",
+        icon: "sparkles",
+      },
+      {
+        label: "Reports",
+        href: appRoutes.dashboard.reports,
+        description: "Reporting and business performance review.",
+        icon: "bar-chart-3",
+      },
+    ],
   },
   {
-    label: "Finance",
-    href: appRoutes.dashboard.finance,
-    description: "Finance visibility and billing workflows.",
-  },
-  {
-    label: "Calendar",
-    href: appRoutes.dashboard.calendar,
-    description: "Scheduling and event intelligence.",
-  },
-  {
-    label: "AI Assistant",
-    href: appRoutes.dashboard.assistant,
-    description: "Embedded AI guidance and recommendations.",
+    title: "System",
+    items: [
+      {
+        label: "Settings",
+        href: appRoutes.dashboard.settings,
+        description: "Workspace and account configuration.",
+        icon: "settings",
+      },
+    ],
   },
 ];
 
-export const footerNavigation: NavigationItem[] = [
+export const footerNavigation: MarketingNavigationItem[] = [
   {
     label: "Home",
     href: appRoutes.marketing.home,
@@ -78,8 +152,7 @@ export const footerNavigation: NavigationItem[] = [
     href: appRoutes.marketing.contact,
   },
   {
-    label: "Sign In",
-    href: appRoutes.auth.signIn,
-    featureKey: "authentication",
+    label: "Login",
+    href: appRoutes.auth.login,
   },
 ];
