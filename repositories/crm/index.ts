@@ -1,0 +1,5 @@
+export { createCompaniesRepository, type CompaniesRepository } from './companies'
+export { createContactsRepository, type ContactsRepository } from './contacts'
+export { createLeadsRepository, type LeadsRepository } from './leads'
+export { createDealsRepository, type DealsRepository } from './deals'
+export { createActivitiesRepository, type ActivitiesRepository } from './activities'
