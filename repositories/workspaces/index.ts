@@ -1,4 +1,1 @@
-export {
-  createWorkspacesRepository,
-  type WorkspacesRepository,
-} from './workspaces'
+export { createWorkspacesRepository, type WorkspacesRepository } from './workspaces'

@@ -1,4 +1,1 @@
-export {
-  createProfilesRepository,
-  type ProfilesRepository,
-} from './profiles'
+export { createProfilesRepository, type ProfilesRepository } from './profiles'
