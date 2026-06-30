@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import type { CrmPageContent } from "@/config/crm";
 
@@ -23,9 +25,14 @@ export function CRMHeader({ content }: CRMHeaderProps) {
 
         <Button
           size="sm"
+          asChild={Boolean(content.primaryActionHref)}
           className="w-fit rounded-full px-5 shadow-[0_8px_24px_-16px_rgba(15,23,42,0.32)] transition-all duration-150 hover:shadow-[0_12px_32px_-16px_rgba(15,23,42,0.42)]"
         >
-          {content.primaryActionLabel}
+          {content.primaryActionHref ? (
+            <Link href={content.primaryActionHref}>{content.primaryActionLabel}</Link>
+          ) : (
+            <span>{content.primaryActionLabel}</span>
+          )}
         </Button>
       </div>
 

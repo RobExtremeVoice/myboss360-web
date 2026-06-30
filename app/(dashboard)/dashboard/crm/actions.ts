@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { createServerClient } from "@/lib/supabase/server";
 import { createCRMService } from "@/services/crm/crm-service";
@@ -14,10 +15,22 @@ import {
   updateDealSchema,
 } from "@/services/crm/schemas";
 
-type ActionState = {
+export type ActionState = {
   success: boolean;
   error?: string;
 };
+
+const updateDealStageSchema = z.object({
+  id: z.string().uuid("Invalid deal identifier."),
+  stage: z.enum([
+    "prospect",
+    "qualified",
+    "proposal",
+    "negotiation",
+    "closed_won",
+    "closed_lost",
+  ]),
+});
 
 function getString(formData: FormData, key: string): string | undefined {
   const value = formData.get(key);
@@ -246,6 +259,33 @@ export async function createDealAction(formData: FormData): Promise<ActionState>
   }
 }
 
+export async function updateDealStageAction(
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const parsed = updateDealStageSchema.safeParse({
+      id: getString(formData, "id"),
+      stage: getString(formData, "stage"),
+    });
+
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message };
+    }
+
+    const { user, service } = await getContext();
+    await service.updateDeal(user.id, parsed.data.id, {
+      stage: parsed.data.stage,
+    });
+    revalidatePath("/dashboard/crm");
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unable to update deal stage.",
+    };
+  }
+}
+
 export async function updateDealAction(formData: FormData): Promise<ActionState> {
   try {
     const parsed = updateDealSchema.safeParse({
@@ -353,4 +393,3 @@ export async function createActivityAction(formData: FormData): Promise<ActionSt
     };
   }
 }
-

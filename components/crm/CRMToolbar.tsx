@@ -5,21 +5,34 @@ import {
   crmLeadStatusOptions,
   crmPageContent,
   crmStageFilterOptions,
+  type CrmSelectOption,
 } from "@/config/crm";
 
 type CRMToolbarProps = {
   search: string;
   stage: string;
   leadStatus: string;
+  owner: string;
+  company: string;
+  ownerOptions: CrmSelectOption[];
+  companyOptions: CrmSelectOption[];
 };
 
 const fieldClass =
   "h-11 w-full rounded-full border border-black/8 bg-white px-4 text-sm text-slate-950 outline-none transition-all duration-150 placeholder:text-slate-400 focus:border-black/14 focus:shadow-[0_0_0_4px_rgba(15,23,42,0.05)]";
 
-export function CRMToolbar({ search, stage, leadStatus }: CRMToolbarProps) {
+export function CRMToolbar({
+  search,
+  stage,
+  leadStatus,
+  owner,
+  company,
+  ownerOptions,
+  companyOptions,
+}: CRMToolbarProps) {
   return (
     <section className="rounded-[1.6rem] border border-black/6 bg-white p-5 shadow-[0_18px_48px_-36px_rgba(15,23,42,0.18)]">
-      <form className="grid gap-3 lg:grid-cols-[minmax(0,1.5fr)_220px_220px_auto] lg:items-end">
+      <form className="grid gap-3 lg:grid-cols-[minmax(0,1.15fr)_220px_220px_220px_220px_auto] lg:items-end">
         <div>
           <label
             htmlFor="crm-search"
@@ -72,6 +85,48 @@ export function CRMToolbar({ search, stage, leadStatus }: CRMToolbarProps) {
             className={fieldClass}
           >
             {crmLeadStatusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="crm-owner"
+            className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400"
+          >
+            {crmPageContent.toolbar.ownerLabel}
+          </label>
+          <select
+            id="crm-owner"
+            name="owner"
+            defaultValue={owner}
+            className={fieldClass}
+          >
+            {ownerOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="crm-company"
+            className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400"
+          >
+            {crmPageContent.toolbar.companyLabel}
+          </label>
+          <select
+            id="crm-company"
+            name="company"
+            defaultValue={company}
+            className={fieldClass}
+          >
+            {companyOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
