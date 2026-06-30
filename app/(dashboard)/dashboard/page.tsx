@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { ActivityList } from "@/components/dashboard/ActivityList";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
@@ -9,78 +11,158 @@ import { OpportunityList } from "@/components/dashboard/OpportunityList";
 import { PriorityList } from "@/components/dashboard/PriorityList";
 import { QuickActionsGrid } from "@/components/dashboard/QuickActionsGrid";
 import { SectionCard } from "@/components/dashboard/SectionCard";
-import { dashboardHomeContent } from "@/config/dashboard";
+import { dashboardPageContent } from "@/config/dashboard-metrics";
+import { createServerClient } from "@/lib/supabase/server";
+import { createExecutiveMetricsService } from "@/services/dashboard/executive-metrics-service";
 
-export default function DashboardPage() {
+function DashboardEmptyState(props: { title: string; description: string }) {
+  return (
+    <div className="rounded-[1.25rem] border border-dashed border-black/10 bg-slate-50/70 px-4 py-6">
+      <p className="text-sm font-medium text-slate-950">{props.title}</p>
+      <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
+        {props.description}
+      </p>
+    </div>
+  );
+}
+
+export default async function DashboardPage() {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const executiveMetricsService = createExecutiveMetricsService(supabase);
+  const dashboard = await executiveMetricsService.getExecutiveDashboard({
+    userId: user.id,
+    userEmail: user.email,
+  });
+
+  const emptyState = dashboard.workspace
+    ? dashboardPageContent.emptyDashboardState
+    : dashboardPageContent.emptyWorkspaceState;
+
   return (
     <div className="space-y-8 lg:space-y-10">
       <DashboardPageHeader
-        title={dashboardHomeContent.title}
-        description={dashboardHomeContent.description}
-        greeting={dashboardHomeContent.greeting}
+        title={dashboard.title}
+        description={dashboard.description}
+        greeting={dashboard.greeting}
       />
 
+      {!dashboard.hasLiveData ? (
+        <SectionCard
+          title={emptyState.title}
+          description={emptyState.description}
+        >
+          <p className="text-sm leading-6 text-slate-600">
+            The dashboard is connected and ready. As soon as live Supabase records appear in
+            this workspace, executive metrics will render here automatically without requiring
+            any UI changes.
+          </p>
+        </SectionCard>
+      ) : null}
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {dashboardHomeContent.metrics.map((metric) => (
+        {dashboard.metrics.map((metric) => (
           <KpiCard key={metric.label} metric={metric} />
         ))}
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
         <div>
-          <ExecutiveBriefCard content={dashboardHomeContent.executiveBrief} />
+          <ExecutiveBriefCard content={dashboard.executiveBrief} />
         </div>
 
         <div className="space-y-6">
           <SectionCard
-            title="Today's Executive Priorities"
-            description="High-leverage decisions and follow-through that need leadership attention."
+            title={dashboardPageContent.sections.priorities.title}
+            description={dashboardPageContent.sections.priorities.description}
           >
-            <PriorityList items={dashboardHomeContent.priorities} />
+            {dashboard.priorities.length > 0 ? (
+              <PriorityList items={dashboard.priorities} />
+            ) : (
+              <DashboardEmptyState
+                title={dashboardPageContent.sections.priorities.emptyTitle}
+                description={dashboardPageContent.sections.priorities.emptyDescription}
+              />
+            )}
           </SectionCard>
 
           <SectionCard
-            title="Top Opportunities"
-            description="Commercial opportunities with the strongest near-term leverage."
+            title={dashboardPageContent.sections.opportunities.title}
+            description={dashboardPageContent.sections.opportunities.description}
           >
-            <OpportunityList items={dashboardHomeContent.recentOpportunities} />
+            {dashboard.recentOpportunities.length > 0 ? (
+              <OpportunityList items={dashboard.recentOpportunities} />
+            ) : (
+              <DashboardEmptyState
+                title={dashboardPageContent.sections.opportunities.emptyTitle}
+                description={dashboardPageContent.sections.opportunities.emptyDescription}
+              />
+            )}
           </SectionCard>
         </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)]">
         <SectionCard
-          title="Upcoming Meetings"
-          description="Meetings requiring awareness today."
+          title={dashboardPageContent.sections.meetings.title}
+          description={dashboardPageContent.sections.meetings.description}
         >
-          <MeetingList items={dashboardHomeContent.upcomingMeetings} />
+          {dashboard.upcomingMeetings.length > 0 ? (
+            <MeetingList items={dashboard.upcomingMeetings} />
+          ) : (
+            <DashboardEmptyState
+              title={dashboardPageContent.sections.meetings.emptyTitle}
+              description={dashboardPageContent.sections.meetings.emptyDescription}
+            />
+          )}
         </SectionCard>
 
         <SectionCard
-          title="Quick Actions"
-          description="Common entry points for the next operating task."
+          title={dashboardPageContent.sections.quickActions.title}
+          description={dashboardPageContent.sections.quickActions.description}
         >
-          <QuickActionsGrid actions={dashboardHomeContent.quickActions} />
+          <QuickActionsGrid actions={dashboard.quickActions} />
         </SectionCard>
 
         <SectionCard
-          title="Recent Activity"
-          description="The latest cross-functional updates affecting leadership visibility."
+          title={dashboardPageContent.sections.activity.title}
+          description={dashboardPageContent.sections.activity.description}
           action={
             <Button variant="outline" size="sm" className="rounded-full border-black/8 bg-white">
               View all
             </Button>
           }
         >
-          <ActivityList items={dashboardHomeContent.recentActivity} />
+          {dashboard.recentActivity.length > 0 ? (
+            <ActivityList items={dashboard.recentActivity} />
+          ) : (
+            <DashboardEmptyState
+              title={dashboardPageContent.sections.activity.emptyTitle}
+              description={dashboardPageContent.sections.activity.emptyDescription}
+            />
+          )}
         </SectionCard>
       </section>
 
       <SectionCard
-        title="Recent Documents"
-        description="Recently updated notes and files from across the workspace."
+        title={dashboardPageContent.sections.documents.title}
+        description={dashboardPageContent.sections.documents.description}
       >
-        <DocumentList items={dashboardHomeContent.recentDocuments} />
+        {dashboard.recentDocuments.length > 0 ? (
+          <DocumentList items={dashboard.recentDocuments} />
+        ) : (
+          <DashboardEmptyState
+            title={dashboardPageContent.sections.documents.emptyTitle}
+            description={dashboardPageContent.sections.documents.emptyDescription}
+          />
+        )}
       </SectionCard>
     </div>
   );
