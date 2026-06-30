@@ -16,6 +16,35 @@ export function createContactsRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async search(workspaceId: string, query: string): Promise<Row[]> {
+      const { data, error } = await db
+        .from('contacts')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .is('deleted_at', null)
+        .or(
+          `first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,job_title.ilike.%${query}%`
+        )
+        .order('first_name')
+      if (error) throw error
+      return data
+    },
+
+    async listByIds(ids: string[]): Promise<Row[]> {
+      if (ids.length === 0) {
+        return []
+      }
+
+      const { data, error } = await db
+        .from('contacts')
+        .select('*')
+        .in('id', ids)
+        .is('deleted_at', null)
+        .order('first_name')
+      if (error) throw error
+      return data
+    },
+
     async listByCompany(companyId: string): Promise<Row[]> {
       const { data, error } = await db
         .from('contacts')

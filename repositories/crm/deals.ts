@@ -16,6 +16,39 @@ export function createDealsRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async listFiltered(
+      workspaceId: string,
+      options: {
+        query?: string
+        stage?: string
+        limit?: number
+      } = {}
+    ): Promise<Row[]> {
+      let request = db
+        .from('deals')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .is('deleted_at', null)
+
+      if (options.stage) {
+        request = request.eq('stage', options.stage)
+      }
+
+      if (options.query) {
+        request = request.or(`title.ilike.%${options.query}%,notes.ilike.%${options.query}%`)
+      }
+
+      request = request.order('value', { ascending: false, nullsFirst: false })
+
+      if (options.limit) {
+        request = request.limit(options.limit)
+      }
+
+      const { data, error } = await request
+      if (error) throw error
+      return data
+    },
+
     async listByStage(workspaceId: string, stage: string): Promise<Row[]> {
       const { data, error } = await db
         .from('deals')

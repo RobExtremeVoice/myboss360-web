@@ -5,6 +5,35 @@ type Row = Database['public']['Tables']['activities']['Row']
 
 export function createActivitiesRepository(db: SupabaseClient<Database>) {
   return {
+    async listByWorkspace(
+      workspaceId: string,
+      options: {
+        query?: string
+        limit?: number
+      } = {}
+    ): Promise<Row[]> {
+      let request = db
+        .from('activities')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+
+      if (options.query) {
+        request = request.or(
+          `title.ilike.%${options.query}%,body.ilike.%${options.query}%,type.ilike.%${options.query}%`
+        )
+      }
+
+      request = request.order('occurred_at', { ascending: false })
+
+      if (options.limit) {
+        request = request.limit(options.limit)
+      }
+
+      const { data, error } = await request
+      if (error) throw error
+      return data
+    },
+
     async listByDeal(dealId: string): Promise<Row[]> {
       const { data, error } = await db
         .from('activities')

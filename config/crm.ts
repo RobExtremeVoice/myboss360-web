@@ -1,20 +1,22 @@
-export type CrmHeaderContent = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  summary: string;
-  primaryActionLabel: string;
+export type CrmPriorityTone = "critical" | "watch" | "ready";
+
+export type CrmPipelineStageDefinition = {
+  key: string;
+  dbStage: string;
+  label: string;
 };
 
 export type CrmPipelineStage = {
+  key: string;
   name: string;
-  dealCount: number;
   totalValue: string;
-  progressLabel: string;
+  dealCount: number;
   progress: number;
+  progressLabel: string;
 };
 
 export type CrmLead = {
+  id: string;
   company: string;
   contact: string;
   source: string;
@@ -24,17 +26,17 @@ export type CrmLead = {
   lastContact: string;
 };
 
-export type CrmPriorityTone = "critical" | "watch" | "ready";
-
 export type CrmPriorityCard = {
+  id: string;
   title: string;
   detail: string;
   owner: string;
   dueWindow: string;
-  tone?: CrmPriorityTone;
+  tone: CrmPriorityTone;
 };
 
 export type CrmOpportunity = {
+  id: string;
   company: string;
   arr: string;
   probability: string;
@@ -46,129 +48,84 @@ export type CrmOpportunity = {
 };
 
 export type CrmActivity = {
+  id: string;
+  type: string;
   actor: string;
   title: string;
   detail: string;
   timestamp: string;
-  type: string;
 };
 
 export type CrmCustomerHealth = {
+  id: string;
   company: string;
+  owner: string;
   healthScore: number;
   renewalDate: string;
   risk: string;
   nps: string;
   expansionOpportunity: string;
-  owner: string;
   detail: string;
 };
 
-export type CrmEmptyState = {
-  title: string;
-  description: string;
-};
+export type CrmPageContent = typeof crmPageContent;
 
-export type CrmPageContent = {
-  header: CrmHeaderContent;
-  pipelineSummary: {
-    title: string;
-    description: string;
-    stages: CrmPipelineStage[];
-  };
-  recentLeads: {
-    title: string;
-    description: string;
-    columnLabels: {
-      company: string;
-      contact: string;
-      source: string;
-      owner: string;
-      status: string;
-      value: string;
-      lastContact: string;
-    };
-    leads: CrmLead[];
-  };
-  priorities: {
-    title: string;
-    description: string;
-    items: CrmPriorityCard[];
-  };
-  openOpportunities: {
-    title: string;
-    description: string;
-    opportunities: CrmOpportunity[];
-  };
-  activityTimeline: {
-    title: string;
-    description: string;
-    items: CrmActivity[];
-    emptyState: CrmEmptyState;
-  };
-  customerHealth: {
-    title: string;
-    description: string;
-    accounts: CrmCustomerHealth[];
-  };
-};
+export const crmPipelineStageDefinitions: CrmPipelineStageDefinition[] = [
+  { key: "prospecting", dbStage: "prospect", label: "Prospecting" },
+  { key: "qualified", dbStage: "qualified", label: "Qualified" },
+  { key: "proposal", dbStage: "proposal", label: "Proposal" },
+  { key: "negotiation", dbStage: "negotiation", label: "Negotiation" },
+  { key: "won", dbStage: "closed_won", label: "Won" },
+];
 
-export const crmPageContent: CrmPageContent = {
+export const crmLeadStatusOptions = [
+  { value: "all", label: "All lead statuses" },
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "qualified", label: "Qualified" },
+  { value: "disqualified", label: "Disqualified" },
+] as const;
+
+export const crmStageFilterOptions = [
+  { value: "all", label: "All deal stages" },
+  ...crmPipelineStageDefinitions.map((stage) => ({
+    value: stage.dbStage,
+    label: stage.label,
+  })),
+] as const;
+
+export const crmPageContent = {
   header: {
-    eyebrow: "CRM Workspace",
-    title: "A structured commercial workspace for pipeline, relationships, and account health.",
+    eyebrow: "Revenue workspace",
+    title: "CRM",
     description:
-      "The CRM module is evolving from a snapshot into a workspace leaders can actually operate from, combining pipeline clarity, lead management, account activity, and customer risk visibility.",
+      "Track the health of your pipeline, monitor follow-through, and keep sales execution visible across the workspace.",
     summary:
-      "Proposal-stage momentum is strong today, with Atlas and Northstar driving the highest-value decisions while renewal timing and demo follow-through require active attention.",
-    primaryActionLabel: "New Lead",
+      "This workspace is now backed by live Supabase data. Search, filters, pipeline totals, leads, opportunities, and activity all resolve server-side within the active workspace.",
+    primaryActionLabel: "New record",
+  },
+  toolbar: {
+    searchLabel: "Search",
+    searchPlaceholder: "Search companies, contacts, deals, and activity",
+    stageLabel: "Deal stage",
+    leadStatusLabel: "Lead status",
+    submitLabel: "Apply filters",
+    resetLabel: "Reset",
   },
   pipelineSummary: {
     title: "Pipeline Summary",
     description:
-      "A stage-by-stage view of active commercial momentum across the CRM.",
-    stages: [
-      {
-        name: "Prospecting",
-        dealCount: 9,
-        totalValue: "$540K",
-        progressLabel: "Top of funnel",
-        progress: 18,
-      },
-      {
-        name: "Qualified",
-        dealCount: 7,
-        totalValue: "$1.16M",
-        progressLabel: "Validated demand",
-        progress: 36,
-      },
-      {
-        name: "Proposal",
-        dealCount: 6,
-        totalValue: "$1.82M",
-        progressLabel: "Best current leverage",
-        progress: 64,
-      },
-      {
-        name: "Negotiation",
-        dealCount: 4,
-        totalValue: "$710K",
-        progressLabel: "Close coordination",
-        progress: 82,
-      },
-      {
-        name: "Won",
-        dealCount: 5,
-        totalValue: "$930K",
-        progressLabel: "Closed this quarter",
-        progress: 100,
-      },
-    ],
+      "Live stage totals across the current workspace, with values aggregated from real deals.",
+    emptyState: {
+      title: "No active pipeline yet",
+      description:
+        "Create the first deal in Supabase and the pipeline summary will populate automatically.",
+    },
   },
   recentLeads: {
     title: "Recent Leads",
     description:
-      "New leads and contacts moving through initial qualification and commercial follow-up.",
+      "Fresh inbound demand and follow-up visibility based on real lead records.",
     columnLabels: {
       company: "Company",
       contact: "Contact",
@@ -178,218 +135,55 @@ export const crmPageContent: CrmPageContent = {
       value: "Value",
       lastContact: "Last Contact",
     },
-    leads: [
-      {
-        company: "Northstream Partners",
-        contact: "Avery Collins",
-        source: "Referral",
-        owner: "Marcus Lee",
-        status: "Qualified",
-        value: "$120K",
-        lastContact: "Today, 9:20 AM",
-      },
-      {
-        company: "Summit Forge",
-        contact: "Mina Patel",
-        source: "Website",
-        owner: "Olivia Chen",
-        status: "New",
-        value: "$75K",
-        lastContact: "Yesterday",
-      },
-      {
-        company: "Crestline Advisory",
-        contact: "Jordan Brooks",
-        source: "Event",
-        owner: "Sophie Bennett",
-        status: "Working",
-        value: "$180K",
-        lastContact: "Today, 8:05 AM",
-      },
-      {
-        company: "Harbor Studio",
-        contact: "Daniel Wu",
-        source: "Inbound",
-        owner: "Marcus Lee",
-        status: "Qualified",
-        value: "$95K",
-        lastContact: "Yesterday",
-      },
-      {
-        company: "Vantage Collective",
-        contact: "Elena Morris",
-        source: "Partner",
-        owner: "Olivia Chen",
-        status: "Working",
-        value: "$210K",
-        lastContact: "Today, 11:15 AM",
-      },
-    ],
+    emptyState: {
+      title: "No leads match the current filters",
+      description:
+        "Try clearing the search or lead status filter, or create a new lead in the current workspace.",
+    },
   },
   priorities: {
     title: "Today's Priorities",
     description:
-      "The highest-value CRM actions that should stay in front of leadership and revenue ops.",
-    items: [
-      {
-        title: "Call Acme Inc.",
-        detail: "Reconnect with the buyer after yesterday’s pricing review and unblock procurement questions.",
-        owner: "Marcus Lee",
-        dueWindow: "Before 12:00 PM",
-        tone: "critical",
-      },
-      {
-        title: "Review Atlas Proposal",
-        detail: "Confirm margin guardrails and finalize the executive note before customer send-off.",
-        owner: "Olivia Chen",
-        dueWindow: "Today",
-        tone: "watch",
-      },
-      {
-        title: "Prepare Renewal",
-        detail: "Package the Northstar renewal summary with delivery performance and adoption notes.",
-        owner: "Sophie Bennett",
-        dueWindow: "By 2:00 PM",
-        tone: "watch",
-      },
-      {
-        title: "Schedule Demo",
-        detail: "Lock the Crestline stakeholder demo while interest and internal momentum are still high.",
-        owner: "Marcus Lee",
-        dueWindow: "This afternoon",
-        tone: "ready",
-      },
-    ],
+      "Server-generated priorities based on upcoming close dates, pipeline risk, and recent engagement gaps.",
+    emptyState: {
+      title: "No urgent priorities right now",
+      description:
+        "As deals, leads, and activities accumulate, this queue will surface the highest-leverage next actions.",
+    },
   },
   openOpportunities: {
     title: "Open Opportunities",
     description:
-      "Commercial opportunities that still need active coordination, executive visibility, or follow-through.",
-    opportunities: [
-      {
-        company: "Atlas Growth",
-        arr: "$420K",
-        probability: "92%",
-        stage: "Proposal",
-        owner: "Marcus Lee",
-        nextAction: "Finalize executive approval",
-        detail: "Executive approval is the last blocker before customer confirmation.",
-        confidence: 92,
-      },
-      {
-        company: "Northstar Advisory",
-        arr: "$185K",
-        probability: "78%",
-        stage: "Negotiation",
-        owner: "Olivia Chen",
-        nextAction: "Resolve legal language",
-        detail: "Scope alignment is positive, though legal review is still open.",
-        confidence: 78,
-      },
-      {
-        company: "Crestpoint",
-        arr: "$96K",
-        probability: "64%",
-        stage: "Qualified",
-        owner: "Sophie Bennett",
-        nextAction: "Confirm stakeholder map",
-        detail: "The opportunity is real, and the next move is aligning the buying group.",
-        confidence: 64,
-      },
-      {
-        company: "Acme Inc.",
-        arr: "$240K",
-        probability: "71%",
-        stage: "Proposal",
-        owner: "Marcus Lee",
-        nextAction: "Address pricing concern",
-        detail: "Commercial interest is strong, but timing depends on a fast pricing response.",
-        confidence: 71,
-      },
-    ],
+      "Live deals in motion across the pipeline, ordered by value and probability.",
+    emptyState: {
+      title: "No open opportunities found",
+      description:
+        "Open deals will appear here automatically once your workspace starts tracking pipeline activity.",
+    },
   },
   activityTimeline: {
     title: "Activity Timeline",
     description:
-      "A structured timeline of revenue interactions across meetings, emails, calls, and closing signals.",
-    items: [
-      {
-        actor: "Marcus Lee",
-        title: "Proposal viewed by Atlas Growth",
-        detail: "The buyer reopened the revised proposal and spent nine minutes on the pricing section.",
-        timestamp: "18 min ago",
-        type: "Proposal Viewed",
-      },
-      {
-        actor: "Olivia Chen",
-        title: "Northstar renewal meeting completed",
-        detail: "The client confirmed positive delivery sentiment and requested updated legal wording.",
-        timestamp: "47 min ago",
-        type: "Meeting",
-      },
-      {
-        actor: "Sophie Bennett",
-        title: "Call logged with Crestline Advisory",
-        detail: "Discovery follow-up surfaced a second operational use case and two more stakeholders.",
-        timestamp: "1 hr ago",
-        type: "Call",
-      },
-      {
-        actor: "Marcus Lee",
-        title: "Email sent to Acme Inc.",
-        detail: "Commercial clarification was sent to the procurement lead with revised implementation timing.",
-        timestamp: "1 hr ago",
-        type: "Email",
-      },
-      {
-        actor: "Nina Patel",
-        title: "Contract signed for Meridian Ops",
-        detail: "The account is now closed-won and handed off for onboarding coordination.",
-        timestamp: "2 hrs ago",
-        type: "Contract Signed",
-      },
-    ],
+      "Recent CRM activity pulled directly from the shared workspace timeline.",
     emptyState: {
       title: "No CRM activity yet",
       description:
-        "When meetings, calls, emails, and commercial milestones are available, they will appear here.",
+        "Meetings, emails, calls, proposals, and signed contracts will appear here as activities are created.",
     },
   },
   customerHealth: {
     title: "Customer Health",
     description:
-      "An account-level view of renewal timing, health score, risk posture, sentiment, and expansion potential.",
-    accounts: [
-      {
-        company: "Atlas Growth",
-        healthScore: 91,
-        renewalDate: "Sep 02, 2026",
-        risk: "Low",
-        nps: "61",
-        expansionOpportunity: "High",
-        owner: "Marcus Lee",
-        detail: "Stakeholder alignment is strong and commercial expansion remains likely this quarter.",
-      },
-      {
-        company: "Northstar Advisory",
-        healthScore: 74,
-        renewalDate: "Jul 28, 2026",
-        risk: "Moderate",
-        nps: "42",
-        expansionOpportunity: "Medium",
-        owner: "Olivia Chen",
-        detail: "Relationship quality is positive, but renewal timing pressure requires closer attention this week.",
-      },
-      {
-        company: "Crestpoint",
-        healthScore: 86,
-        renewalDate: "New rollout account",
-        risk: "Low",
-        nps: "Pending",
-        expansionOpportunity: "High",
-        owner: "Sophie Bennett",
-        detail: "Implementation readiness is good and stakeholder appetite suggests a larger footprint over time.",
-      },
-    ],
+      "Company health signals derived from account activity, pipeline momentum, and stored metadata.",
+    emptyState: {
+      title: "No customer health data available",
+      description:
+        "Add companies and related opportunities to begin building account health visibility.",
+    },
+  },
+  workspaceEmptyState: {
+    title: "No workspace access found",
+    description:
+      "This account does not currently belong to a workspace, so CRM data cannot be loaded yet.",
   },
 };

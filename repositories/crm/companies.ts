@@ -16,6 +16,35 @@ export function createCompaniesRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async search(workspaceId: string, query: string): Promise<Row[]> {
+      const { data, error } = await db
+        .from('companies')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .is('deleted_at', null)
+        .or(
+          `name.ilike.%${query}%,domain.ilike.%${query}%,industry.ilike.%${query}%`
+        )
+        .order('name')
+      if (error) throw error
+      return data
+    },
+
+    async listByIds(ids: string[]): Promise<Row[]> {
+      if (ids.length === 0) {
+        return []
+      }
+
+      const { data, error } = await db
+        .from('companies')
+        .select('*')
+        .in('id', ids)
+        .is('deleted_at', null)
+        .order('name')
+      if (error) throw error
+      return data
+    },
+
     async findById(id: string): Promise<Row | null> {
       const { data, error } = await db
         .from('companies')
