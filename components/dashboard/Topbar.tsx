@@ -17,26 +17,26 @@ type TopbarProps = {
 
 export function Topbar({ onMenuToggle }: TopbarProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-black/6 bg-slate-100/92 backdrop-blur-xl">
-      <div className="flex flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:px-8">
-        <div className="flex items-center gap-3 lg:min-w-0 lg:flex-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={onMenuToggle}
-            className="rounded-full border-black/8 bg-white lg:hidden"
-            aria-label="Open navigation"
-          >
-            <Menu className="size-4" />
-          </Button>
+    <header className="sticky top-0 z-20 border-b border-black/6 bg-slate-100/94 backdrop-blur-xl">
+      <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={onMenuToggle}
+          className="shrink-0 rounded-full border-black/8 bg-white lg:hidden"
+          aria-label="Open navigation"
+        >
+          <Menu className="size-4" />
+        </Button>
 
-          <div className="w-full max-w-xl min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="w-full max-w-md">
             <SearchBar />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 xl:gap-3">
+        <div className="flex items-center gap-2">
           <div className="hidden lg:block">
             <WorkspaceSwitcher compact />
           </div>
@@ -53,17 +53,16 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
               tone="success"
             />
           </div>
+
           <Button
             type="button"
-            size="lg"
-            className="rounded-full px-4 shadow-[0_10px_28px_-24px_rgba(15,23,42,0.18)]"
+            size="sm"
+            className="rounded-full px-4 shadow-[0_8px_24px_-16px_rgba(15,23,42,0.32)] transition-all duration-150 hover:shadow-[0_12px_32px_-16px_rgba(15,23,42,0.42)]"
           >
-            <Plus className="size-4" />
-            {dashboardShellContent.primaryActionLabel}
+            <Plus className="size-3.5" />
+            <span className="font-medium">{dashboardShellContent.primaryActionLabel}</span>
           </Button>
-        </div>
 
-        <div className="flex items-center justify-end gap-2 sm:gap-3">
           <NotificationBell />
           <UserMenu />
         </div>

@@ -33,15 +33,15 @@ export function NavigationItem({
         "group flex items-start gap-3 rounded-[1.15rem] border px-3 py-3 text-sm transition-all duration-200",
         isActive
           ? "border-slate-950 bg-slate-950 text-white shadow-[0_16px_34px_-24px_rgba(15,23,42,0.42)]"
-          : "border-transparent text-slate-600 hover:border-black/6 hover:bg-slate-100 hover:text-slate-950"
+          : "border-transparent text-slate-600 hover:border-black/8 hover:bg-slate-50 hover:text-slate-950"
       )}
     >
       <span
         className={cn(
-          "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border transition-colors duration-200",
+          "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200",
           isActive
             ? "border-white/10 bg-white/10 text-white"
-            : "border-black/8 bg-white text-slate-500 group-hover:text-slate-950"
+            : "border-black/8 bg-white text-slate-500 group-hover:border-black/12 group-hover:bg-slate-100 group-hover:text-slate-950"
         )}
       >
         {icon}
@@ -50,8 +50,8 @@ export function NavigationItem({
         <span className="block font-medium">{label}</span>
         <span
           className={cn(
-            "mt-1 block text-xs leading-5",
-            isActive ? "text-white/68" : "text-slate-500"
+            "mt-1 block text-xs leading-5 transition-colors duration-200",
+            isActive ? "text-white/68" : "text-slate-500 group-hover:text-slate-600"
           )}
         >
           {description}

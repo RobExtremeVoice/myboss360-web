@@ -24,11 +24,14 @@ export type CrmLead = {
   lastContact: string;
 };
 
+export type CrmPriorityTone = "critical" | "watch" | "ready";
+
 export type CrmPriorityCard = {
   title: string;
   detail: string;
   owner: string;
   dueWindow: string;
+  tone?: CrmPriorityTone;
 };
 
 export type CrmOpportunity = {
@@ -233,24 +236,28 @@ export const crmPageContent: CrmPageContent = {
         detail: "Reconnect with the buyer after yesterday’s pricing review and unblock procurement questions.",
         owner: "Marcus Lee",
         dueWindow: "Before 12:00 PM",
+        tone: "critical",
       },
       {
         title: "Review Atlas Proposal",
         detail: "Confirm margin guardrails and finalize the executive note before customer send-off.",
         owner: "Olivia Chen",
         dueWindow: "Today",
+        tone: "watch",
       },
       {
         title: "Prepare Renewal",
         detail: "Package the Northstar renewal summary with delivery performance and adoption notes.",
         owner: "Sophie Bennett",
         dueWindow: "By 2:00 PM",
+        tone: "watch",
       },
       {
         title: "Schedule Demo",
         detail: "Lock the Crestline stakeholder demo while interest and internal momentum are still high.",
         owner: "Marcus Lee",
         dueWindow: "This afternoon",
+        tone: "ready",
       },
     ],
   },

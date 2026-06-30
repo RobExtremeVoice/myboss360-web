@@ -22,13 +22,13 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-[1.75rem] border border-black/6 bg-white shadow-[0_18px_48px_-36px_rgba(15,23,42,0.18)]",
+        "rounded-[1.75rem] border border-black/6 bg-white shadow-[0_18px_48px_-36px_rgba(15,23,42,0.18)] transition-colors duration-200 hover:border-black/10",
         className
       )}
     >
-      <div className="flex flex-col gap-3 border-b border-black/6 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-black/8 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold tracking-[-0.02em] text-slate-950">
+          <h2 className="text-base font-semibold tracking-[-0.02em] text-slate-950">
             {title}
           </h2>
           {description ? (
