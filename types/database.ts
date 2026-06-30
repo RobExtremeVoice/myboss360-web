@@ -769,6 +769,7 @@ export type Database = {
         Row: {
           id: string
           workspace_id: string
+          organization_id: string | null
           user_id: string
           title: string | null
           model: string | null
@@ -780,6 +781,7 @@ export type Database = {
         Insert: {
           id?: string
           workspace_id: string
+          organization_id?: string | null
           user_id: string
           title?: string | null
           model?: string | null
@@ -791,6 +793,7 @@ export type Database = {
         Update: {
           id?: string
           workspace_id?: string
+          organization_id?: string | null
           user_id?: string
           title?: string | null
           model?: string | null

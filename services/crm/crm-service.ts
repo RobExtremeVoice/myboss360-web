@@ -38,6 +38,8 @@ import {
 
 import { recordCrmAuditEvent } from "./audit";
 import { shouldUseDevelopmentCrmFallback } from "./runtime";
+import { createLearningService } from "@/services/learning/learning-service";
+import { emitDealSignals } from "@/services/intelligence/signal-engine";
 
 type CompanyRow = Database["public"]["Tables"]["companies"]["Row"];
 type ContactRow = Database["public"]["Tables"]["contacts"]["Row"];
@@ -1085,6 +1087,14 @@ export function createCRMService(db: SupabaseClient<Database>) {
         entityType: "deal",
       });
 
+      // Fire-and-forget: emit risk signals for the newly created deal
+      void emitDealSignals(
+        deal,
+        workspace.id,
+        workspace.organization_id,
+        createLearningService(db)
+      );
+
       return deal;
     },
 
@@ -1109,6 +1119,21 @@ export function createCRMService(db: SupabaseClient<Database>) {
           ? { previousStage: existing.stage, nextStage: input.stage }
           : undefined,
       });
+
+      // Fire-and-forget: re-evaluate deal risk signals after stage/probability change
+      void workspacesRepo
+        .findById(existing.workspace_id)
+        .then((ws) => {
+          if (!ws) return;
+          return emitDealSignals(
+            updated,
+            ws.id,
+            ws.organization_id,
+            createLearningService(db)
+          );
+        })
+        .catch(() => null);
+
       return updated;
     },
 
