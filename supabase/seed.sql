@@ -4,8 +4,10 @@
 -- =============================================================================
 --
 -- HOW TO RUN (after Supabase project is Active Healthy):
---   Step 1 — Run the migration first:
---             Supabase dashboard → SQL Editor → paste 20260629000000_initial_schema.sql
+--   Step 1 — Run migrations first, in timestamp order:
+--             20260629000000_initial_schema.sql
+--             202606300001_fix_handle_new_user_security_definer.sql
+--             Supabase dashboard → SQL Editor
 --             OR: supabase db push  (if using the CLI with a linked project)
 --
 --   Step 2 — Create your user account via the /register page.
@@ -61,12 +63,21 @@ ON CONFLICT (id) DO NOTHING;
 -- Replace 'YOUR-USER-UUID-HERE' with your actual Supabase Auth user UUID.
 -- =============================================================================
 
--- INSERT INTO memberships (user_id, organization_id, workspace_id, role_id, status, joined_at) VALUES
---   ('YOUR-USER-UUID-HERE',
---    'a0000000-0000-0000-0000-000000000001',
---    'b0000000-0000-0000-0000-000000000001',
---    'f0000000-0000-0000-0000-000000000001',
---    'active', now());
+-- INSERT INTO memberships (user_id, organization_id, workspace_id, role_id, status, joined_at)
+-- SELECT
+--   'YOUR-USER-UUID-HERE',
+--   'a0000000-0000-0000-0000-000000000001',
+--   'b0000000-0000-0000-0000-000000000001',
+--   'f0000000-0000-0000-0000-000000000001',
+--   'active',
+--   now()
+-- WHERE NOT EXISTS (
+--   SELECT 1
+--   FROM memberships m
+--   WHERE m.user_id = 'YOUR-USER-UUID-HERE'
+--     AND m.organization_id = 'a0000000-0000-0000-0000-000000000001'
+--     AND m.workspace_id = 'b0000000-0000-0000-0000-000000000001'
+-- );
 
 -- =============================================================================
 -- 4A. Optional multi-user attachment pattern (safer + idempotent)
@@ -241,9 +252,14 @@ INSERT INTO deals (id, workspace_id, company_id, contact_id, title, stage, value
    (CURRENT_DATE + INTERVAL '28 days')::DATE)
 ON CONFLICT (id) DO NOTHING;
 
--- Update closed deals
-UPDATE deals SET closed_at = now() - INTERVAL '14 days' WHERE id = 'd1000000-0000-0000-0000-000000000005';
-UPDATE deals SET closed_at = now() - INTERVAL '30 days' WHERE id = 'd1000000-0000-0000-0000-000000000006';
+-- Update closed deals without changing existing seed history on re-run
+UPDATE deals
+SET closed_at = COALESCE(closed_at, now() - INTERVAL '14 days')
+WHERE id = 'd1000000-0000-0000-0000-000000000005';
+
+UPDATE deals
+SET closed_at = COALESCE(closed_at, now() - INTERVAL '30 days')
+WHERE id = 'd1000000-0000-0000-0000-000000000006';
 
 -- =============================================================================
 -- 8. Activities (10)
@@ -446,4 +462,5 @@ ON CONFLICT (id) DO NOTHING;
 -- Next step:
 --   - for one user: uncomment and run the single membership INSERT above
 --   - for multiple users: uncomment and run section 4A after those users exist
+--   - re-running this seed is safe: fixed IDs plus conflict handling prevent duplicates
 -- =============================================================================

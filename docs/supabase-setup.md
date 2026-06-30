@@ -30,13 +30,26 @@ If you prefer the dashboard instead of the CLI, paste each migration into the Su
 
 ## 3. Run the seed
 
-After the project is active and the migrations have been applied:
+After the project is active and both migrations have been applied:
 
 ```bash
 psql "$SUPABASE_DB_URL" -f supabase/seed.sql
 ```
 
 Or use the SQL Editor and paste the contents of `supabase/seed.sql`.
+
+Seed order matters:
+
+1. Apply migrations first.
+2. Create users in Supabase Auth.
+3. Run `supabase/seed.sql`.
+
+The seed is written to be re-runnable:
+
+- fixed UUIDs prevent duplicate records
+- insert sections use conflict handling
+- the single-user membership example uses `WHERE NOT EXISTS`
+- closed deal timestamps only populate when `closed_at` is still `NULL`
 
 Before running the seed:
 
@@ -102,3 +115,15 @@ The CRM module may show a development-only fallback dataset when:
 - the current workspace has no live CRM records yet
 
 Production should rely on real Supabase records and empty states instead of mock CRM data.
+
+## 9. Test foundation
+
+This repository does not currently include a dedicated test framework dependency such as Vitest or Jest.
+
+For now, lightweight reliability checks can be written with Node 22's built-in test runner:
+
+```bash
+node --experimental-strip-types --test tests/**/*.test.ts
+```
+
+Recommended next step for broader unit and component coverage: adopt Vitest, because it handles TypeScript ergonomics, mocking, and path-alias-heavy application modules more cleanly than raw `node:test`.

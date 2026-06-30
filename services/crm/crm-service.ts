@@ -37,6 +37,7 @@ import {
 } from "@/utils/formatters";
 
 import { recordCrmAuditEvent } from "./audit";
+import { shouldUseDevelopmentCrmFallback } from "./runtime";
 
 type CompanyRow = Database["public"]["Tables"]["companies"]["Row"];
 type ContactRow = Database["public"]["Tables"]["contacts"]["Row"];
@@ -45,8 +46,6 @@ type DealRow = Database["public"]["Tables"]["deals"]["Row"];
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type WorkspaceRow = Database["public"]["Tables"]["workspaces"]["Row"];
-
-const enableDevelopmentCrmFallback = process.env.NODE_ENV !== "production";
 
 export type CrmFilters = {
   q?: string;
@@ -551,7 +550,7 @@ export function createCRMService(db: SupabaseClient<Database>) {
     const hasLiveRecords =
       companies.length + contacts.length + leads.length + deals.length + activities.length > 0;
 
-    if (!hasLiveRecords && enableDevelopmentCrmFallback) {
+    if (shouldUseDevelopmentCrmFallback({ hasLiveRecords })) {
       return buildFallbackView(normalizedFilters, workspace);
     }
 
