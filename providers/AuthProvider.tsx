@@ -32,10 +32,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const supabase = useMemo(() => createBrowserClient(), [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setLoading(false)
-    })
+    let isActive = true
+
+    async function restoreSession() {
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (isActive) {
+          setSession(data.session)
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void restoreSession()
 
     const {
       data: { subscription },
@@ -43,7 +55,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSession(newSession)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isActive = false
+      subscription.unsubscribe()
+    }
   }, [supabase])
 
   async function signOut() {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { getSupabaseAuthErrorMessage } from '@/lib/supabase/auth-errors'
 import { createBrowserClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -19,20 +20,25 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const supabase = createBrowserClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const supabase = createBrowserClient()
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (authError) {
-      setError(authError.message)
+      if (authError) {
+        setError(getSupabaseAuthErrorMessage(authError))
+        setLoading(false)
+        return
+      }
+
+      router.push('/dashboard')
+      router.refresh()
+    } catch (unexpectedError) {
+      setError(getSupabaseAuthErrorMessage(unexpectedError))
       setLoading(false)
-      return
     }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   const fieldClass =

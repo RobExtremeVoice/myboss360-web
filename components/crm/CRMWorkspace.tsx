@@ -34,8 +34,8 @@ export function CRMWorkspace({ view }: CRMWorkspaceProps) {
           className="border-blue-200/70 bg-blue-50/70"
         >
           <p className="text-sm leading-6 text-blue-900/75">
-            Create real companies, contacts, deals, and activities below. The sample dataset
-            will disappear automatically as soon as live CRM records exist in this workspace.
+            Create real companies, contacts, deals, and activities below. This development
+            dataset disappears automatically as soon as live CRM records exist in this workspace.
           </p>
         </SectionCard>
       ) : null}

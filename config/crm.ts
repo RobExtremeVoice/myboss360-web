@@ -450,9 +450,9 @@ export const crmPageContent = {
     resetLabel: "Reset",
   },
   fallbackNotice: {
-    title: "Example CRM dataset",
+    title: "Development CRM dataset",
     description:
-      "No live Supabase CRM records were found for this workspace yet, so sample records are shown to keep the module usable while you begin creating real data.",
+      "No live Supabase CRM records were found for this workspace yet, so a local development dataset is shown while you begin creating real data.",
   },
   controlCenter: {
     title: "CRM Control Center",

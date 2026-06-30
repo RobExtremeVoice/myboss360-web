@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
+import { getSupabaseAuthErrorMessage } from '@/lib/supabase/auth-errors'
 import { createBrowserClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
@@ -13,11 +14,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setNotice(null)
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters.')
@@ -30,17 +33,32 @@ export default function RegisterPage() {
 
     setLoading(true)
 
-    const supabase = createBrowserClient()
-    const { error: authError } = await supabase.auth.signUp({ email, password })
+    try {
+      const supabase = createBrowserClient()
+      const { data, error: authError } = await supabase.auth.signUp({ email, password })
 
-    if (authError) {
-      setError(authError.message)
+      if (authError) {
+        setError(getSupabaseAuthErrorMessage(authError))
+        setLoading(false)
+        return
+      }
+
+      if (data.session) {
+        router.push('/dashboard')
+        router.refresh()
+        return
+      }
+
+      setNotice(
+        'Your account was created. Check your email to confirm your address, then sign in to continue.'
+      )
+      setPassword('')
+      setConfirmPassword('')
       setLoading(false)
-      return
+    } catch (unexpectedError) {
+      setError(getSupabaseAuthErrorMessage(unexpectedError))
+      setLoading(false)
     }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   const fieldClass =
@@ -112,6 +130,12 @@ export default function RegisterPage() {
         {error ? (
           <div className="rounded-[0.875rem] border border-rose-200 bg-rose-50 px-4 py-3">
             <p className="text-sm text-rose-700">{error}</p>
+          </div>
+        ) : null}
+
+        {notice ? (
+          <div className="rounded-[0.875rem] border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <p className="text-sm text-emerald-700">{notice}</p>
           </div>
         ) : null}
 

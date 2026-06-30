@@ -46,6 +46,8 @@ type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type WorkspaceRow = Database["public"]["Tables"]["workspaces"]["Row"];
 
+const enableDevelopmentCrmFallback = process.env.NODE_ENV !== "production";
+
 export type CrmFilters = {
   q?: string;
   stage?: string;
@@ -470,6 +472,30 @@ function buildFallbackView(filters: CrmWorkspaceView["filters"], workspace: Work
   };
 }
 
+function buildEmptyWorkspaceView(
+  filters: CrmWorkspaceView["filters"],
+  workspace: WorkspaceRow | null
+): CrmWorkspaceView {
+  return {
+    dataMode: "live",
+    workspace: workspace ? { id: workspace.id, name: workspace.name } : null,
+    filters,
+    ownerOptions: [{ value: "all", label: "All owners" }],
+    companyOptions: [{ value: "all", label: "All companies" }],
+    contactOptions: [],
+    pipelineStages: [],
+    pipelineBoard: buildPipelineBoard([]),
+    companies: [],
+    contacts: [],
+    deals: [],
+    recentLeads: [],
+    priorities: [],
+    opportunities: [],
+    activities: [],
+    customerHealth: [],
+  };
+}
+
 export function createCRMService(db: SupabaseClient<Database>) {
   const companiesRepo = createCompaniesRepository(db);
   const contactsRepo = createContactsRepository(db);
@@ -509,24 +535,7 @@ export function createCRMService(db: SupabaseClient<Database>) {
     };
 
     if (!workspace) {
-      return {
-        dataMode: "live",
-        workspace: null,
-        filters: normalizedFilters,
-        ownerOptions: [{ value: "all", label: "All owners" }],
-        companyOptions: [{ value: "all", label: "All companies" }],
-        contactOptions: [],
-        pipelineStages: [],
-        pipelineBoard: buildPipelineBoard([]),
-        companies: [],
-        contacts: [],
-        deals: [],
-        recentLeads: [],
-        priorities: [],
-        opportunities: [],
-        activities: [],
-        customerHealth: [],
-      };
+      return buildEmptyWorkspaceView(normalizedFilters, null);
     }
 
     const [companies, contacts, leads, deals, activities, currentUserProfile] =
@@ -542,8 +551,12 @@ export function createCRMService(db: SupabaseClient<Database>) {
     const hasLiveRecords =
       companies.length + contacts.length + leads.length + deals.length + activities.length > 0;
 
-    if (!hasLiveRecords) {
+    if (!hasLiveRecords && enableDevelopmentCrmFallback) {
       return buildFallbackView(normalizedFilters, workspace);
+    }
+
+    if (!hasLiveRecords) {
+      return buildEmptyWorkspaceView(normalizedFilters, workspace);
     }
 
     const profileIds = Array.from(

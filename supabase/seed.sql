@@ -28,8 +28,8 @@
 -- workspace_id:  b0000000-0000-0000-0000-000000000001
 
 -- Roles
--- role_admin_id: r0000000-0000-0000-0000-000000000001
--- role_memb_id:  r0000000-0000-0000-0000-000000000002
+-- role_admin_id: f0000000-0000-0000-0000-000000000001
+-- role_memb_id:  f0000000-0000-0000-0000-000000000002
 
 -- =============================================================================
 -- 1. Organization
@@ -52,8 +52,8 @@ ON CONFLICT (id) DO NOTHING;
 -- 3. System Roles
 -- =============================================================================
 INSERT INTO roles (id, organization_id, name, description, is_system) VALUES
-  ('r0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Admin',  'Full administrative access', true),
-  ('r0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'Member', 'Standard workspace access',  true)
+  ('f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'Admin',  'Full administrative access', true),
+  ('f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'Member', 'Standard workspace access',  true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
@@ -65,7 +65,7 @@ ON CONFLICT (id) DO NOTHING;
 --   ('YOUR-USER-UUID-HERE',
 --    'a0000000-0000-0000-0000-000000000001',
 --    'b0000000-0000-0000-0000-000000000001',
---    'r0000000-0000-0000-0000-000000000001',
+--    'f0000000-0000-0000-0000-000000000001',
 --    'active', now());
 
 -- =============================================================================
@@ -182,68 +182,68 @@ ON CONFLICT (id) DO NOTHING;
 -- 6. Contacts (12)
 -- =============================================================================
 INSERT INTO contacts (id, workspace_id, company_id, first_name, last_name, email, phone, job_title) VALUES
-  ('ct000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'Sarah',    'Chen',       's.chen@nexusdynamics.com',       '+1 (415) 555-1001', 'CEO'),
-  ('ct000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'Michelle', 'Dubois',     'm.dubois@nexusdynamics.com',     '+1 (415) 555-1002', 'VP Sales'),
-  ('ct000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'Marcus',   'Thompson',   'm.thompson@atlasfinancial.com',  '+1 (212) 555-2001', 'CFO'),
-  ('ct000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'Ahmad',    'Hassan',     'a.hassan@atlasfinancial.com',   '+1 (212) 555-2002', 'Director of M&A'),
-  ('ct000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000003', 'Amanda',   'Rodriguez',  'a.rodriguez@horizonmedical.com', '+1 (312) 555-3001', 'CTO'),
-  ('ct000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000004', 'James',    'O''Brien',   'j.obrien@pacificconsulting.com', '+1 (206) 555-4001', 'Managing Director'),
-  ('ct000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000005', 'Elena',    'Vasquez',    'e.vasquez@greenfuture.io',       '+1 (303) 555-5001', 'VP Operations'),
-  ('ct000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000006', 'Kevin',    'Park',       'k.park@quantumsoftware.dev',    '+1 (512) 555-6001', 'Co-Founder & CTO'),
-  ('ct000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000007', 'Rachel',   'Morrison',   'r.morrison@sterlingproperties.com', '+1 (702) 555-7001', 'Principal'),
-  ('ct000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000008', 'David',    'Okafor',     'd.okafor@meridianglobal.com',   '+1 (305) 555-8001', 'Chief Commercial Officer'),
-  ('ct000000-0000-0000-0000-000000000011', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000009', 'Lisa',     'Hartmann',   'l.hartmann@techvision.ai',       '+1 (617) 555-9001', 'Head of Product'),
-  ('ct000000-0000-0000-0000-000000000012', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000010', 'Robert',   'Chen',       'r.chen@apexmfg.com',             '+1 (313) 555-0001', 'COO')
+  ('c7000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'Sarah',    'Chen',       's.chen@nexusdynamics.com',       '+1 (415) 555-1001', 'CEO'),
+  ('c7000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'Michelle', 'Dubois',     'm.dubois@nexusdynamics.com',     '+1 (415) 555-1002', 'VP Sales'),
+  ('c7000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'Marcus',   'Thompson',   'm.thompson@atlasfinancial.com',  '+1 (212) 555-2001', 'CFO'),
+  ('c7000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'Ahmad',    'Hassan',     'a.hassan@atlasfinancial.com',   '+1 (212) 555-2002', 'Director of M&A'),
+  ('c7000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000003', 'Amanda',   'Rodriguez',  'a.rodriguez@horizonmedical.com', '+1 (312) 555-3001', 'CTO'),
+  ('c7000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000004', 'James',    'O''Brien',   'j.obrien@pacificconsulting.com', '+1 (206) 555-4001', 'Managing Director'),
+  ('c7000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000005', 'Elena',    'Vasquez',    'e.vasquez@greenfuture.io',       '+1 (303) 555-5001', 'VP Operations'),
+  ('c7000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000006', 'Kevin',    'Park',       'k.park@quantumsoftware.dev',    '+1 (512) 555-6001', 'Co-Founder & CTO'),
+  ('c7000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000007', 'Rachel',   'Morrison',   'r.morrison@sterlingproperties.com', '+1 (702) 555-7001', 'Principal'),
+  ('c7000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000008', 'David',    'Okafor',     'd.okafor@meridianglobal.com',   '+1 (305) 555-8001', 'Chief Commercial Officer'),
+  ('c7000000-0000-0000-0000-000000000011', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000009', 'Lisa',     'Hartmann',   'l.hartmann@techvision.ai',       '+1 (617) 555-9001', 'Head of Product'),
+  ('c7000000-0000-0000-0000-000000000012', 'b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000010', 'Robert',   'Chen',       'r.chen@apexmfg.com',             '+1 (313) 555-0001', 'COO')
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================================================
 -- 7. Deals (8)
 -- =============================================================================
 INSERT INTO deals (id, workspace_id, company_id, contact_id, title, stage, value, currency, probability, expected_close_date) VALUES
-  ('dl000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000001', 'ct000000-0000-0000-0000-000000000001',
+  ('d1000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000001', 'c7000000-0000-0000-0000-000000000001',
    'Nexus Dynamics — Enterprise License', 'proposal', 240000, 'USD', 65,
    (CURRENT_DATE + INTERVAL '45 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000002', 'ct000000-0000-0000-0000-000000000003',
+  ('d1000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000002', 'c7000000-0000-0000-0000-000000000003',
    'Atlas Financial — Platform Migration', 'qualified', 185000, 'USD', 40,
    (CURRENT_DATE + INTERVAL '60 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000003', 'ct000000-0000-0000-0000-000000000005',
+  ('d1000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000003', 'c7000000-0000-0000-0000-000000000005',
    'Horizon Medical — Data Intelligence Suite', 'negotiation', 320000, 'USD', 80,
    (CURRENT_DATE + INTERVAL '21 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000004', 'ct000000-0000-0000-0000-000000000006',
+  ('d1000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000004', 'c7000000-0000-0000-0000-000000000006',
    'Pacific Consulting — CRM Implementation', 'prospect', 95000, 'USD', 20,
    (CURRENT_DATE + INTERVAL '90 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000005', 'ct000000-0000-0000-0000-000000000007',
+  ('d1000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000005', 'c7000000-0000-0000-0000-000000000007',
    'GreenFuture — Analytics Platform', 'closed_won', 175000, 'USD', 100,
    (CURRENT_DATE - INTERVAL '14 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000006', 'ct000000-0000-0000-0000-000000000008',
+  ('d1000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000006', 'c7000000-0000-0000-0000-000000000008',
    'Quantum Software — API Integration', 'closed_won', 42000, 'USD', 100,
    (CURRENT_DATE - INTERVAL '30 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000007', 'ct000000-0000-0000-0000-000000000009',
+  ('d1000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000007', 'c7000000-0000-0000-0000-000000000009',
    'Sterling Properties — Management System', 'proposal', 78000, 'USD', 55,
    (CURRENT_DATE + INTERVAL '35 days')::DATE),
 
-  ('dl000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001',
-   'c0000000-0000-0000-0000-000000000008', 'ct000000-0000-0000-0000-000000000010',
+  ('d1000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000008', 'c7000000-0000-0000-0000-000000000010',
    'Meridian Global — ERP Upgrade', 'negotiation', 215000, 'USD', 75,
    (CURRENT_DATE + INTERVAL '28 days')::DATE)
 ON CONFLICT (id) DO NOTHING;
 
 -- Update closed deals
-UPDATE deals SET closed_at = now() - INTERVAL '14 days' WHERE id = 'dl000000-0000-0000-0000-000000000005';
-UPDATE deals SET closed_at = now() - INTERVAL '30 days' WHERE id = 'dl000000-0000-0000-0000-000000000006';
+UPDATE deals SET closed_at = now() - INTERVAL '14 days' WHERE id = 'd1000000-0000-0000-0000-000000000005';
+UPDATE deals SET closed_at = now() - INTERVAL '30 days' WHERE id = 'd1000000-0000-0000-0000-000000000006';
 
 -- =============================================================================
 -- 8. Activities (10)
@@ -252,61 +252,61 @@ INSERT INTO activities (id, workspace_id, type, title, body, company_id, contact
   ('ac000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
    'call', 'Discovery call — Nexus Dynamics',
    'Discussed current pain points with legacy CRM. Sarah confirmed budget approved. Next step: technical demo with engineering team.',
-   'c0000000-0000-0000-0000-000000000001', 'ct000000-0000-0000-0000-000000000001', 'dl000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000001', 'c7000000-0000-0000-0000-000000000001', 'd1000000-0000-0000-0000-000000000001',
    now() - INTERVAL '3 days'),
 
   ('ac000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
    'email', 'Proposal sent — Nexus Dynamics',
    'Sent full proposal deck and pricing breakdown. Included ROI calculator showing 340% return in 18 months.',
-   'c0000000-0000-0000-0000-000000000001', 'ct000000-0000-0000-0000-000000000002', 'dl000000-0000-0000-0000-000000000001',
+   'c0000000-0000-0000-0000-000000000001', 'c7000000-0000-0000-0000-000000000002', 'd1000000-0000-0000-0000-000000000001',
    now() - INTERVAL '1 day'),
 
   ('ac000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
    'meeting', 'Contract negotiation — Horizon Medical',
    'Met in person at their Chicago HQ. Legal team raised HIPAA compliance requirements. Agreed to add BAA to contract. Closing imminent.',
-   'c0000000-0000-0000-0000-000000000003', 'ct000000-0000-0000-0000-000000000005', 'dl000000-0000-0000-0000-000000000003',
+   'c0000000-0000-0000-0000-000000000003', 'c7000000-0000-0000-0000-000000000005', 'd1000000-0000-0000-0000-000000000003',
    now() - INTERVAL '2 days'),
 
   ('ac000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
    'note', 'Internal note — Atlas Financial stalling',
    'Deal has been in qualified stage for 6 weeks. Marcus mentioned internal reorganization. Re-engage after Q3 budget cycle closes.',
-   'c0000000-0000-0000-0000-000000000002', 'ct000000-0000-0000-0000-000000000003', 'dl000000-0000-0000-0000-000000000002',
+   'c0000000-0000-0000-0000-000000000002', 'c7000000-0000-0000-0000-000000000003', 'd1000000-0000-0000-0000-000000000002',
    now() - INTERVAL '5 days'),
 
   ('ac000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001',
    'call', 'Win call — GreenFuture Energy',
    'Contract signed! Kickoff scheduled for next Monday. Implementation team onboarding starts week 2.',
-   'c0000000-0000-0000-0000-000000000005', 'ct000000-0000-0000-0000-000000000007', 'dl000000-0000-0000-0000-000000000005',
+   'c0000000-0000-0000-0000-000000000005', 'c7000000-0000-0000-0000-000000000007', 'd1000000-0000-0000-0000-000000000005',
    now() - INTERVAL '14 days'),
 
   ('ac000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001',
    'email', 'Follow-up — Sterling Properties',
    'Sent revised proposal with phased implementation option at 3 × $26K milestones. Awaiting feedback from their board.',
-   'c0000000-0000-0000-0000-000000000007', 'ct000000-0000-0000-0000-000000000009', 'dl000000-0000-0000-0000-000000000007',
+   'c0000000-0000-0000-0000-000000000007', 'c7000000-0000-0000-0000-000000000009', 'd1000000-0000-0000-0000-000000000007',
    now() - INTERVAL '1 day'),
 
   ('ac000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001',
    'meeting', 'Exec QBR — Meridian Global',
    'Quarterly business review with David and their VP Finance. Confirmed urgency of ERP modernisation before year-end audit.',
-   'c0000000-0000-0000-0000-000000000008', 'ct000000-0000-0000-0000-000000000010', 'dl000000-0000-0000-0000-000000000008',
+   'c0000000-0000-0000-0000-000000000008', 'c7000000-0000-0000-0000-000000000010', 'd1000000-0000-0000-0000-000000000008',
    now() - INTERVAL '4 days'),
 
   ('ac000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001',
    'call', 'Intro call — Pacific Consulting',
    'Initial discovery. James mentioned they are evaluating 3 vendors. Timeline 90 days. Key differentiator: our AI executive reporting.',
-   'c0000000-0000-0000-0000-000000000004', 'ct000000-0000-0000-0000-000000000006', 'dl000000-0000-0000-0000-000000000004',
+   'c0000000-0000-0000-0000-000000000004', 'c7000000-0000-0000-0000-000000000006', 'd1000000-0000-0000-0000-000000000004',
    now() - INTERVAL '7 days'),
 
   ('ac000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000001',
    'note', 'TechVision — upsell opportunity identified',
    'Lisa flagged that TechVision is expanding their data team from 4 to 14 analysts. Could upgrade from Starter to Pro tier ($35K ARR uplift).',
-   'c0000000-0000-0000-0000-000000000009', 'ct000000-0000-0000-0000-000000000011', NULL,
+   'c0000000-0000-0000-0000-000000000009', 'c7000000-0000-0000-0000-000000000011', NULL,
    now() - INTERVAL '2 days'),
 
   ('ac000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001',
    'email', 'Case study request — Apex Manufacturing',
    'Sent GreenFuture case study as requested. Robert wants to share it with their board before committing to a demo.',
-   'c0000000-0000-0000-0000-000000000010', 'ct000000-0000-0000-0000-000000000012', NULL,
+   'c0000000-0000-0000-0000-000000000010', 'c7000000-0000-0000-0000-000000000012', NULL,
    now() - INTERVAL '1 day')
 ON CONFLICT (id) DO NOTHING;
 
@@ -314,22 +314,22 @@ ON CONFLICT (id) DO NOTHING;
 -- 9. Projects (4)
 -- =============================================================================
 INSERT INTO projects (id, workspace_id, name, description, status, priority, start_date, due_date) VALUES
-  ('pr000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
+  ('a9000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
    'Q3 Product Launch', 'Ship the AI Executive Briefing feature and mobile app v2.',
    'active', 'critical',
    CURRENT_DATE - INTERVAL '30 days', CURRENT_DATE + INTERVAL '45 days'),
 
-  ('pr000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
+  ('a9000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
    'Enterprise Sales Pipeline', 'Close 5 enterprise deals ($500K+ combined ARR) by end of Q3.',
    'active', 'high',
    CURRENT_DATE - INTERVAL '60 days', CURRENT_DATE + INTERVAL '60 days'),
 
-  ('pr000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
+  ('a9000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
    'Infrastructure Migration', 'Migrate all services to the new cloud architecture for 99.99% uptime SLA.',
    'active', 'high',
    CURRENT_DATE - INTERVAL '14 days', CURRENT_DATE + INTERVAL '75 days'),
 
-  ('pr000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
+  ('a9000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
    'Annual Investor Report', 'Prepare and deliver the FY annual report to all Series B investors.',
    'active', 'medium',
    CURRENT_DATE, CURRENT_DATE + INTERVAL '30 days')
@@ -339,54 +339,54 @@ ON CONFLICT (id) DO NOTHING;
 -- 10. Tasks (10)
 -- =============================================================================
 INSERT INTO tasks (id, workspace_id, project_id, title, description, status, priority, due_date) VALUES
-  ('tk000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000001',
+  ('a7000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000001',
    'Finalize AI Briefing UI mockups', 'Approve final Figma designs with engineering before sprint kick-off.',
    'done', 'high', CURRENT_DATE - INTERVAL '7 days'),
 
-  ('tk000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000001',
+  ('a7000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000001',
    'Write launch announcement blog post', 'Draft, review, and schedule the product launch post for the company blog.',
    'in_progress', 'medium', CURRENT_DATE + INTERVAL '14 days'),
 
-  ('tk000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000001',
+  ('a7000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000001',
    'Set up launch day war room', 'Assign on-call rotation, monitoring dashboards, and escalation path.',
    'todo', 'high', CURRENT_DATE + INTERVAL '40 days'),
 
-  ('tk000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000002',
+  ('a7000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000002',
    'Send Horizon Medical contract for legal review',
    'Route BAA and MSA to our outside counsel by Friday for a 5-day turnaround.',
    'in_progress', 'critical', CURRENT_DATE + INTERVAL '2 days'),
 
-  ('tk000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000002',
+  ('a7000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000002',
    'Schedule Nexus Dynamics technical demo', 'Coordinate with their engineering team for a 90-minute deep-dive demo.',
    'todo', 'high', CURRENT_DATE + INTERVAL '7 days'),
 
-  ('tk000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000002',
+  ('a7000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000002',
    'Update pipeline forecast model', 'Refresh the weighted pipeline spreadsheet with Q3 actuals and new deals.',
    'todo', 'medium', CURRENT_DATE + INTERVAL '3 days'),
 
-  ('tk000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000003',
+  ('a7000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000003',
    'Complete database migration dry run', 'Run full production data migration in staging environment and verify checksums.',
    'in_progress', 'critical', CURRENT_DATE + INTERVAL '5 days'),
 
-  ('tk000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000003',
+  ('a7000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000003',
    'Update DNS failover configuration', 'Configure Route 53 health checks and failover routing for all critical endpoints.',
    'todo', 'high', CURRENT_DATE + INTERVAL '21 days'),
 
-  ('tk000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000004',
+  ('a7000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000004',
    'Compile Q2 financial statements', 'Work with finance to compile audited P&L, balance sheet, and cash flow statements.',
    'todo', 'high', CURRENT_DATE + INTERVAL '10 days'),
 
-  ('tk000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001',
-   'pr000000-0000-0000-0000-000000000004',
+  ('a7000000-0000-0000-0000-000000000010', 'b0000000-0000-0000-0000-000000000001',
+   'a9000000-0000-0000-0000-000000000004',
    'Draft investor letter from CEO', 'CEO to review and sign off on the letter by end of next week.',
    'todo', 'medium', CURRENT_DATE + INTERVAL '12 days')
 ON CONFLICT (id) DO NOTHING;
