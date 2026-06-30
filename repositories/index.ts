@@ -1,4 +1,6 @@
 export * from './crm'
+export * from './learning'
+export * from './memory'
 export * from './organizations'
 export * from './users'
 export * from './workspaces'

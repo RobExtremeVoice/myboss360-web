@@ -924,6 +924,303 @@ export type Database = {
         }
         Relationships: []
       }
+      // -----------------------------------------------------------------------
+      // Sprint 15.5 — Memory Engine & Learning Engine
+      // -----------------------------------------------------------------------
+      memories: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          user_id: string | null
+          type: string
+          title: string
+          content: string
+          source: string | null
+          entity_type: string | null
+          entity_id: string | null
+          confidence: number | null
+          is_pinned: boolean
+          expires_at: string | null
+          metadata: Json
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          user_id?: string | null
+          type: string
+          title: string
+          content: string
+          source?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          confidence?: number | null
+          is_pinned?: boolean
+          expires_at?: string | null
+          metadata?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          user_id?: string | null
+          type?: string
+          title?: string
+          content?: string
+          source?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          confidence?: number | null
+          is_pinned?: boolean
+          expires_at?: string | null
+          metadata?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      memory_events: {
+        Row: {
+          id: string
+          memory_id: string
+          event_type: string
+          actor_id: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          memory_id: string
+          event_type: string
+          actor_id?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          memory_id?: string
+          event_type?: string
+          actor_id?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      learning_signals: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          signal_type: string
+          entity_type: string | null
+          entity_id: string | null
+          severity: string
+          title: string
+          description: string | null
+          data: Json
+          detected_at: string
+          resolved_at: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          signal_type: string
+          entity_type?: string | null
+          entity_id?: string | null
+          severity?: string
+          title: string
+          description?: string | null
+          data?: Json
+          detected_at?: string
+          resolved_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          signal_type?: string
+          entity_type?: string | null
+          entity_id?: string | null
+          severity?: string
+          title?: string
+          description?: string | null
+          data?: Json
+          detected_at?: string
+          resolved_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learning_patterns: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          pattern_type: string
+          name: string
+          description: string | null
+          confidence: number
+          occurrences: number
+          last_seen_at: string
+          data: Json
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          pattern_type: string
+          name: string
+          description?: string | null
+          confidence?: number
+          occurrences?: number
+          last_seen_at?: string
+          data?: Json
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          pattern_type?: string
+          name?: string
+          description?: string | null
+          confidence?: number
+          occurrences?: number
+          last_seen_at?: string
+          data?: Json
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recommendations: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          user_id: string | null
+          pattern_id: string | null
+          signal_id: string | null
+          type: string
+          priority: string
+          title: string
+          description: string
+          action_label: string | null
+          action_url: string | null
+          entity_type: string | null
+          entity_id: string | null
+          status: string
+          expires_at: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          user_id?: string | null
+          pattern_id?: string | null
+          signal_id?: string | null
+          type: string
+          priority?: string
+          title: string
+          description: string
+          action_label?: string | null
+          action_url?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          status?: string
+          expires_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          user_id?: string | null
+          pattern_id?: string | null
+          signal_id?: string | null
+          type?: string
+          priority?: string
+          title?: string
+          description?: string
+          action_label?: string | null
+          action_url?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          status?: string
+          expires_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      recommendation_feedback: {
+        Row: {
+          id: string
+          recommendation_id: string
+          user_id: string
+          action: string
+          rating: number | null
+          comment: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          recommendation_id: string
+          user_id: string
+          action: string
+          rating?: number | null
+          comment?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          recommendation_id?: string
+          user_id?: string
+          action?: string
+          rating?: number | null
+          comment?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
