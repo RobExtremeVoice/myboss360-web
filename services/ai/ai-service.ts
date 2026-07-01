@@ -4,25 +4,30 @@ import type { AIConversation, ConversationListItem, SendMessageInput, SendMessag
 import { createConversationManager } from './conversation-manager'
 import { loadExecutiveContext } from './context-loader'
 import { buildSystemPrompt, buildToolSchemas } from './prompt-builder'
-import { getDefaultProvider, isProviderRegistered, registerProvider } from './provider-registry'
+import { getDefaultProvider, registerProvider } from './provider-registry'
 import { MockProvider } from './providers/mock-provider'
+import { OpenAIProvider } from './providers/openai-provider'
 import {
   FutureAnthropicProvider,
   FutureGeminiProvider,
   FutureOllamaProvider,
-  FutureOpenAIProvider,
 } from './providers/future-providers'
 import { createProfilesRepository } from '@/repositories/users'
+import { aiConfig } from '@/config/ai'
 
-// Self-initializing: register all providers when this module is first imported.
+// Module-level flag so providers are registered exactly once per process.
+let _providersRegistered = false
+
 function ensureProvidersRegistered(): void {
-  if (!isProviderRegistered('mock')) {
-    registerProvider(new MockProvider())
-    registerProvider(new FutureOpenAIProvider())
-    registerProvider(new FutureAnthropicProvider())
-    registerProvider(new FutureGeminiProvider())
-    registerProvider(new FutureOllamaProvider())
-  }
+  if (_providersRegistered) return
+  _providersRegistered = true
+  // Registration order = priority order: first active provider wins.
+  // OpenAI is registered first so it takes precedence when OPENAI_API_KEY is set.
+  registerProvider(new OpenAIProvider())
+  registerProvider(new MockProvider())
+  registerProvider(new FutureAnthropicProvider())
+  registerProvider(new FutureGeminiProvider())
+  registerProvider(new FutureOllamaProvider())
 }
 
 export function createAIService(db: SupabaseClient<Database>) {
@@ -69,8 +74,8 @@ export function createAIService(db: SupabaseClient<Database>) {
           })
         : 'You are MyBoss360 Executive AI. Business context is loading — answer what you can.'
 
-      // Select provider
-      const provider = getDefaultProvider(input.providerId)
+      // Select provider — per-request override, then config default, then first active.
+      const provider = getDefaultProvider(input.providerId ?? aiConfig.defaultProviderId)
 
       // Generate response
       const response = await provider.generate({

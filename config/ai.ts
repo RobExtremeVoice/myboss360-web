@@ -1,5 +1,7 @@
 export const aiConfig = {
-  defaultProviderId: 'mock',
+  // OpenAI is the preferred provider; registry falls back to 'mock' when key is absent.
+  defaultProviderId: 'openai',
+  fallbackProviderId: 'mock',
   maxMessagesPerConversation: 100,
   maxContextTokens: 8000,
   defaultTemperature: 0.7,
@@ -8,6 +10,12 @@ export const aiConfig = {
   maxConversationsToList: 50,
   // Number of recent messages to include in the LLM context window
   messageHistoryLimit: 20,
+  // OpenAI-specific settings (used by OpenAIProvider)
+  openai: {
+    model: 'gpt-4o-mini',   // cost-efficient; swap to 'gpt-4o' for higher quality
+    maxTokens: 1200,
+    temperature: 0.7,
+  },
 }
 
 export const systemInstructions = `You are MyBoss360 Executive AI — an intelligent assistant embedded inside the MyBoss360 executive dashboard.

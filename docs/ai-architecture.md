@@ -204,21 +204,56 @@ All routes require an authenticated session cookie. Ownership checks on `[id]` r
 
 ---
 
-## How OpenAI/Anthropic integration will work
+## OpenAI Provider (Sprint 17B)
 
-1. Install the provider SDK (`openai` / `@anthropic-ai/sdk`)
-2. Create a concrete class extending `AIProvider` in `services/ai/providers/`
-3. Implement `generate()` and `stream()` using the SDK
-4. Set the `status` to `'active'` when the API key env var is present
-5. Register the provider in `ai-service.ts` alongside MockProvider
-6. Set `aiConfig.defaultProviderId` to the new provider id, or allow per-conversation selection
+`services/ai/providers/openai-provider.ts` — production provider using native `fetch` (no SDK dependency).
 
-The system prompt, tool schemas, and ConversationManager are provider-agnostic. No other code changes are needed.
+### Environment variable
 
-For **streaming responses** (Sprint 17B):
-- The `/api/ai/messages` route uses `collectStream()` today (full response)
-- Switch to a `ReadableStream` response using `encodeSSE()` and `toReadableStream()`
-- The `AIChatWindow` switches from `fetch + json` to `EventSource` or `fetch + ReadableStream`
+```
+OPENAI_API_KEY=sk-...
+```
+
+Add this to `.env.local`. The server reads it at startup; it is **never** exposed to the browser.
+
+### Auto-activation
+
+`OpenAIProvider.status` returns `'active'` when `OPENAI_API_KEY` is present and `'unconfigured'` otherwise. Because OpenAI is registered before MockProvider in `ai-service.ts`, the registry's priority loop selects it automatically when it is active.
+
+| OPENAI_API_KEY | Active provider |
+|---|---|
+| Set | OpenAI (`gpt-4o-mini`) |
+| Not set | MockProvider (deterministic fallback) |
+
+### Configuration (`config/ai.ts`)
+
+```typescript
+openai: {
+  model: 'gpt-4o-mini',  // swap to 'gpt-4o' for higher quality
+  maxTokens: 1200,
+  temperature: 0.7,
+}
+```
+
+### Error handling
+
+The `/api/ai/messages` route catches all provider errors and maps them to user-friendly messages. Raw API errors (including the API key value) are never returned to the browser — they are logged server-side only.
+
+### Per-request provider override
+
+Pass `providerId` in the POST body to force a specific provider:
+```json
+{ "content": "...", "providerId": "mock" }
+```
+
+### Adding Anthropic or Gemini
+
+1. Create `services/ai/providers/anthropic-provider.ts` implementing `AIProvider`
+2. Read `ANTHROPIC_API_KEY` in the constructor; set `status` accordingly
+3. Call `registerProvider(new AnthropicProvider())` in `ai-service.ts` before MockProvider
+4. Update `aiConfig.defaultProviderId` if Anthropic should be the new default
+
+No changes to context loading, prompt building, conversation management, or UI are needed.
 
 ---
 
@@ -240,12 +275,10 @@ Business context, conversation history, tool schemas, and memory storage are all
 
 ---
 
-## Sprint 17B — Remaining work
+## Sprint 17C — Remaining work
 
-- Wire real OpenAI or Anthropic provider (add API key env var + SDK)
 - Implement write tools: `createTask`, `updateDealStage`, `createFollowUp`
-- Add tool-call loop: if response includes `toolCalls`, execute via ToolRouter and re-submit results
-- Implement streaming endpoint + SSE-based AIChatWindow
-- Add per-conversation provider selection (model picker UI)
+- Add tool-call loop: execute tool calls returned by OpenAI and re-submit results
+- Streaming endpoint (`ReadableStream` + SSE) and streaming `AIChatWindow`
+- Per-conversation provider selection UI (model picker)
 - Write AI-generated memories back to MemoryEngine after each conversation
-- Add lightweight test suite (vitest — not in package.json yet)
