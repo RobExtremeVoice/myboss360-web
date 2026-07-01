@@ -1680,6 +1680,114 @@ export type Database = {
         }
         Relationships: []
       }
+      google_connections: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          user_id: string
+          google_account_email: string
+          scopes: string[]
+          status: string
+          error_message: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          user_id: string
+          google_account_email: string
+          scopes?: string[]
+          status?: string
+          error_message?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          user_id?: string
+          google_account_email?: string
+          scopes?: string[]
+          status?: string
+          error_message?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      google_tokens: {
+        Row: {
+          id: string
+          connection_id: string
+          access_token_enc: string
+          refresh_token_enc: string
+          token_type: string
+          expires_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id: string
+          access_token_enc: string
+          refresh_token_enc: string
+          token_type?: string
+          expires_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string
+          access_token_enc?: string
+          refresh_token_enc?: string
+          token_type?: string
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      calendar_sync_state: {
+        Row: {
+          id: string
+          connection_id: string
+          calendar_id: string
+          sync_token: string | null
+          next_page_token: string | null
+          last_synced_at: string | null
+          total_events_synced: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id: string
+          calendar_id: string
+          sync_token?: string | null
+          next_page_token?: string | null
+          last_synced_at?: string | null
+          total_events_synced?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string
+          calendar_id?: string
+          sync_token?: string | null
+          next_page_token?: string | null
+          last_synced_at?: string | null
+          total_events_synced?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {

@@ -1,5 +1,6 @@
 export * from './ai'
 export * from './crm'
+export * from './google'
 export * from './intelligence'
 export * from './knowledge'
 export * from './learning'
