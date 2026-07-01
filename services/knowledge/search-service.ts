@@ -41,6 +41,13 @@ function toDocument(row: Database['public']['Tables']['knowledge_documents']['Ro
   }
 }
 
+// Strip PostgREST filter metacharacters so user input cannot break out of the
+// value position in an .or() string (comma separates conditions, parens and
+// colon are structural, asterisk is a wildcard modifier).
+function sanitizePostgrestValue(value: string): string {
+  return value.replace(/[,().:*]/g, ' ').trim()
+}
+
 function highlightMatches(content: string, query: string, maxLength = 300): string[] {
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
   const lower = content.toLowerCase()
@@ -68,13 +75,14 @@ export function createKnowledgeSearchService(db: SupabaseClient<Database>) {
       const start = Date.now()
       const limit = Math.min(query.limit ?? knowledgeConfig.defaultSearchLimit, knowledgeConfig.maxSearchLimit)
 
+      const safeQuery = sanitizePostgrestValue(query.query)
       let q = db
         .from('knowledge_documents')
         .select('*')
         .eq('workspace_id', query.workspaceId)
         .eq('status', 'published')
         .is('deleted_at', null)
-        .or(`title.ilike.%${query.query}%,content.ilike.%${query.query}%`)
+        .or(`title.ilike.%${safeQuery}%,content.ilike.%${safeQuery}%`)
         .order('updated_at', { ascending: false })
         .limit(limit)
 
