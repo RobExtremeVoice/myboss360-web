@@ -27,7 +27,7 @@ test('deriveOrgSlug handles empty/undefined email gracefully', () => {
 
 test('deriveOrgSlug appends a unique suffix so concurrent signups do not collide', () => {
   const a = deriveOrgSlug('alice@acme.com')
-  const b = deriveOrgSlug('alice@acme.com')
+  deriveOrgSlug('alice@acme.com')
   // Two calls at different ms will differ; same-ms calls may match in test —
   // we only assert the suffix exists (non-empty suffix after the last '-').
   const parts = a.split('-')
