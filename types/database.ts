@@ -1788,6 +1788,213 @@ export type Database = {
         }
         Relationships: []
       }
+      gmail_contacts: {
+        Row: {
+          id: string
+          connection_id: string
+          workspace_id: string
+          email: string
+          display_name: string | null
+          domain: string
+          organization: string | null
+          signature_hint: string | null
+          crm_contact_id: string | null
+          first_seen_at: string
+          last_seen_at: string
+          message_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id: string
+          workspace_id: string
+          email: string
+          display_name?: string | null
+          domain: string
+          organization?: string | null
+          signature_hint?: string | null
+          crm_contact_id?: string | null
+          first_seen_at?: string
+          last_seen_at?: string
+          message_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string
+          workspace_id?: string
+          email?: string
+          display_name?: string | null
+          domain?: string
+          organization?: string | null
+          signature_hint?: string | null
+          crm_contact_id?: string | null
+          first_seen_at?: string
+          last_seen_at?: string
+          message_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gmail_messages: {
+        Row: {
+          id: string
+          connection_id: string
+          workspace_id: string
+          gmail_thread_id: string
+          message_id: string
+          google_thread_id: string
+          from_email: string
+          from_name: string | null
+          to_emails: string[]
+          cc_emails: string[]
+          subject: string | null
+          snippet: string | null
+          body_text: string | null
+          label_ids: string[]
+          sent_at: string
+          is_outbound: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id: string
+          workspace_id: string
+          gmail_thread_id: string
+          message_id: string
+          google_thread_id: string
+          from_email: string
+          from_name?: string | null
+          to_emails?: string[]
+          cc_emails?: string[]
+          subject?: string | null
+          snippet?: string | null
+          body_text?: string | null
+          label_ids?: string[]
+          sent_at: string
+          is_outbound?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string
+          workspace_id?: string
+          gmail_thread_id?: string
+          message_id?: string
+          google_thread_id?: string
+          from_email?: string
+          from_name?: string | null
+          to_emails?: string[]
+          cc_emails?: string[]
+          subject?: string | null
+          snippet?: string | null
+          body_text?: string | null
+          label_ids?: string[]
+          sent_at?: string
+          is_outbound?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gmail_thread_participants: {
+        Row: {
+          id: string
+          gmail_thread_id: string
+          gmail_contact_id: string
+          role: string
+          message_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          gmail_thread_id: string
+          gmail_contact_id: string
+          role?: string
+          message_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          gmail_thread_id?: string
+          gmail_contact_id?: string
+          role?: string
+          message_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gmail_threads: {
+        Row: {
+          id: string
+          connection_id: string
+          workspace_id: string
+          thread_id: string
+          subject: string | null
+          snippet: string | null
+          label_ids: string[]
+          status: string
+          message_count: number
+          first_message_at: string | null
+          latest_reply_at: string | null
+          last_sender_email: string | null
+          participant_emails: string[]
+          avg_response_latency_ms: number | null
+          last_response_latency_ms: number | null
+          last_synced_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id: string
+          workspace_id: string
+          thread_id: string
+          subject?: string | null
+          snippet?: string | null
+          label_ids?: string[]
+          status?: string
+          message_count?: number
+          first_message_at?: string | null
+          latest_reply_at?: string | null
+          last_sender_email?: string | null
+          participant_emails?: string[]
+          avg_response_latency_ms?: number | null
+          last_response_latency_ms?: number | null
+          last_synced_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string
+          workspace_id?: string
+          thread_id?: string
+          subject?: string | null
+          snippet?: string | null
+          label_ids?: string[]
+          status?: string
+          message_count?: number
+          first_message_at?: string | null
+          latest_reply_at?: string | null
+          last_sender_email?: string | null
+          participant_emails?: string[]
+          avg_response_latency_ms?: number | null
+          last_response_latency_ms?: number | null
+          last_synced_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gmail_sync_state: {
         Row: {
           id: string

@@ -67,6 +67,18 @@ export function createContactsRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async findByEmail(workspaceId: string, email: string): Promise<Row | null> {
+      const { data, error } = await db
+        .from('contacts')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .ilike('email', email)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (error) throw error
+      return data
+    },
+
     async create(input: InsertTables<'contacts'>): Promise<Row> {
       const { data, error } = await db
         .from('contacts')

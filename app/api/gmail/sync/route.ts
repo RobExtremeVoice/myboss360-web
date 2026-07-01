@@ -3,7 +3,13 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createWorkspacesRepository } from '@/repositories/workspaces'
 import { createGoogleConnectionsRepository } from '@/repositories/google/connections'
 import { createGmailSyncService } from '@/services/google/gmail-sync-service'
+import { createGmailThreadIntelligenceService } from '@/services/google/gmail-thread-intelligence'
 import { isGoogleConfigured } from '@/config/google'
+
+// Per-request thread processing limit to keep the route from timing out.
+// Remaining threads are caught on the next delta sync call.
+const MAX_THREADS_PER_REQUEST = 50
+const PROCESS_BATCH_SIZE = 5
 
 // GET /api/gmail/sync
 // Returns the current sync state for the authenticated user's Gmail connection.
@@ -96,13 +102,30 @@ export async function POST(request: Request) {
     }
 
     const gmailSync = createGmailSyncService(supabase)
-    const result = await gmailSync.runSync(connection.id)
+    const syncResult = await gmailSync.runSync(connection.id)
+
+    // Process threads through the intelligence engine (Parts 3 + 4).
+    // Cap at MAX_THREADS_PER_REQUEST to avoid request timeouts; subsequent
+    // delta syncs will pick up the remainder.
+    const toProcess = syncResult.threadIds.slice(0, MAX_THREADS_PER_REQUEST)
+    const intelligence = createGmailThreadIntelligenceService(supabase)
+    const { processed, failed } = await intelligence.processBatch(
+      connection.id,
+      workspace.id,
+      workspace.organization_id,
+      user.id,
+      toProcess,
+      PROCESS_BATCH_SIZE
+    )
 
     return NextResponse.json({
-      synced: result.synced,
-      historyId: result.historyId,
-      isInitial: result.isInitial,
-      threadIds: result.threadIds,
+      synced: syncResult.synced,
+      historyId: syncResult.historyId,
+      isInitial: syncResult.isInitial,
+      threadIdsDiscovered: syncResult.threadIds.length,
+      threadsProcessed: processed,
+      threadsFailed: failed,
+      threadsDeferred: Math.max(0, syncResult.threadIds.length - MAX_THREADS_PER_REQUEST),
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error.'

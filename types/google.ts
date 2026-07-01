@@ -227,3 +227,57 @@ export interface GmailSyncResult {
   synced: number
   isInitial: boolean
 }
+
+// ─── Thread Intelligence types (Part 3) ──────────────────────────────────────
+
+export type ThreadStatus =
+  | 'open'
+  | 'waiting_for_us'
+  | 'waiting_for_customer'
+  | 'closed'
+
+export interface NormalizedMessage {
+  messageId: string
+  fromEmail: string
+  fromName: string | null
+  toEmails: string[]
+  ccEmails: string[]
+  subject: string | null
+  snippet: string | null
+  bodyText: string | null
+  labelIds: string[]
+  sentAt: Date
+  isOutbound: boolean
+}
+
+export interface AnalyzedThread {
+  threadId: string
+  subject: string | null
+  snippet: string | null
+  status: ThreadStatus
+  messageCount: number
+  firstMessageAt: Date | null
+  latestReplyAt: Date | null
+  lastSenderEmail: string | null
+  participantEmails: string[]
+  avgResponseLatencyMs: number | null
+  lastResponseLatencyMs: number | null
+  labelIds: string[]
+  messages: NormalizedMessage[]
+}
+
+// ─── Contact Extraction types (Part 4) ───────────────────────────────────────
+
+export interface ExtractedContact {
+  email: string
+  displayName: string | null
+  domain: string
+  organization: string | null
+  signatureHint: string | null
+}
+
+export interface ExtractedParticipant {
+  contact: ExtractedContact
+  role: 'sender' | 'recipient' | 'cc'
+  messageCount: number
+}
