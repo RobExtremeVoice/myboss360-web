@@ -17,6 +17,22 @@ export function createKnowledgeDocumentsRepository(db: SupabaseClient<Database>)
       return data
     },
 
+    async findEmailByThreadId(
+      workspaceId: string,
+      threadId: string
+    ): Promise<DocumentRow | null> {
+      const { data, error } = await db
+        .from('knowledge_documents')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .eq('object_type', 'email')
+        .contains('metadata', { thread_id: threadId })
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (error) throw error
+      return data
+    },
+
     async list(
       workspaceId: string,
       options: {

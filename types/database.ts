@@ -976,9 +976,11 @@ export type Database = {
           title: string
           content: string
           source: string | null
+          source_id: string | null
           entity_type: string | null
           entity_id: string | null
           confidence: number | null
+          importance: string
           is_pinned: boolean
           expires_at: string | null
           metadata: Json
@@ -996,9 +998,11 @@ export type Database = {
           title: string
           content: string
           source?: string | null
+          source_id?: string | null
           entity_type?: string | null
           entity_id?: string | null
           confidence?: number | null
+          importance?: string
           is_pinned?: boolean
           expires_at?: string | null
           metadata?: Json
@@ -1016,9 +1020,11 @@ export type Database = {
           title?: string
           content?: string
           source?: string | null
+          source_id?: string | null
           entity_type?: string | null
           entity_id?: string | null
           confidence?: number | null
+          importance?: string
           is_pinned?: boolean
           expires_at?: string | null
           metadata?: Json
@@ -1065,6 +1071,7 @@ export type Database = {
           entity_type: string | null
           entity_id: string | null
           severity: string
+          confidence: number
           title: string
           description: string | null
           data: Json
@@ -1082,6 +1089,7 @@ export type Database = {
           entity_type?: string | null
           entity_id?: string | null
           severity?: string
+          confidence?: number
           title: string
           description?: string | null
           data?: Json
@@ -1099,6 +1107,7 @@ export type Database = {
           entity_type?: string | null
           entity_id?: string | null
           severity?: string
+          confidence?: number
           title?: string
           description?: string | null
           data?: Json

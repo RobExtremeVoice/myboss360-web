@@ -23,9 +23,11 @@ function toMemory(row: MemoryRow): Memory {
     title: row.title,
     content: row.content,
     source: (row.source ?? 'manual') as Memory['source'],
+    sourceId: row.source_id,
     entityType: row.entity_type as Memory['entityType'],
     entityId: row.entity_id,
     confidence: row.confidence !== null ? Number(row.confidence) : null,
+    importance: (row.importance ?? 'normal') as Memory['importance'],
     isPinned: row.is_pinned,
     expiresAt: row.expires_at,
     metadata: (row.metadata as Record<string, unknown>) ?? {},
@@ -59,9 +61,11 @@ export function createMemoryService(db: SupabaseClient<Database>) {
         title: input.title,
         content: input.content,
         source: input.source ?? 'manual',
+        source_id: input.sourceId ?? null,
         entity_type: input.entityType ?? null,
         entity_id: input.entityId ?? null,
         confidence: input.confidence ?? null,
+        importance: input.importance ?? 'normal',
         is_pinned: input.isPinned ?? false,
         expires_at: input.expiresAt ?? null,
         metadata: (input.metadata ?? {}) as Database['public']['Tables']['memories']['Insert']['metadata'],
@@ -91,6 +95,15 @@ export function createMemoryService(db: SupabaseClient<Database>) {
         offset: options.offset,
       })
       return rows.map(toMemory)
+    },
+
+    async findMemoryBySourceId(
+      workspaceId: string,
+      sourceId: string,
+      type?: string
+    ): Promise<Memory | null> {
+      const row = await memoriesRepo.findBySourceId(workspaceId, sourceId, type)
+      return row ? toMemory(row) : null
     },
 
     async recordMemoryEvent(

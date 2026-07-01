@@ -65,6 +65,37 @@ export interface ImportantTask {
   projectId: string | null
 }
 
+export interface EmailIntelligenceThread {
+  id: string
+  threadId: string
+  subject: string | null
+  priorityScore: number
+  priorityLabel: string
+  responseStatus: string
+  followUpRequired: boolean
+  followUpDue: string | null
+  daysWaiting: number | null
+  latestReplyAt: string | null
+  participantEmails: string[]
+}
+
+export interface EmailTopSender {
+  email: string
+  displayName: string | null
+  organization: string | null
+  messageCount: number
+}
+
+export interface EmailIntelligenceSection {
+  criticalThreads: EmailIntelligenceThread[]
+  highPriorityThreads: EmailIntelligenceThread[]
+  awaitingReplies: EmailIntelligenceThread[]
+  overdueFollowUps: EmailIntelligenceThread[]
+  dealRelatedThreads: EmailIntelligenceThread[]
+  topSenders: EmailTopSender[]
+  newRelationships: LearningSignal[]
+}
+
 export interface IntelligenceContext {
   workspaceId: string
   organizationId: string
@@ -76,6 +107,7 @@ export interface IntelligenceContext {
   topOpportunities: ExecutiveOpportunity[]
   todayAgenda: TodayAgendaItem[]
   importantTasks: ImportantTask[]
+  emailIntelligence: EmailIntelligenceSection
   generatedAt: string
 }
 

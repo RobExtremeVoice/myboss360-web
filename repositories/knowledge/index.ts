@@ -9,3 +9,6 @@ export type { KnowledgeCollectionsRepository } from './collections'
 
 export { createKnowledgeTagsRepository } from './tags'
 export type { KnowledgeTagsRepository } from './tags'
+
+export { createKnowledgeSourcesRepository } from './sources'
+export type { KnowledgeSourcesRepository } from './sources'

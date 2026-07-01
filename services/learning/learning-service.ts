@@ -32,9 +32,11 @@ function toSignal(row: SignalRow): LearningSignal {
     entityType: row.entity_type,
     entityId: row.entity_id,
     severity: row.severity as LearningSignal['severity'],
+    confidence: Number(row.confidence ?? 0.5),
     title: row.title,
     description: row.description,
     data: (row.data as Record<string, unknown>) ?? {},
+    metadata: (row.metadata as Record<string, unknown>) ?? {},
     detectedAt: row.detected_at,
     resolvedAt: row.resolved_at,
     createdAt: row.created_at,
@@ -85,6 +87,9 @@ function toRecommendation(row: RecommendationRow): Recommendation {
 function signalTypeToPatternType(signalType: string): PatternType {
   if (signalType.includes('deal')) return 'deal_risk'
   if (signalType.includes('follow_up')) return 'follow_up'
+  if (signalType.includes('response')) return 'follow_up'
+  if (signalType.includes('attention')) return 'bottleneck'
+  if (signalType.includes('communication')) return 'sales'
   if (signalType.includes('task')) return 'task_completion'
   if (signalType.includes('customer')) return 'customer_health'
   if (signalType.includes('bottleneck')) return 'bottleneck'
@@ -106,10 +111,11 @@ export function createLearningService(db: SupabaseClient<Database>) {
         entity_type: input.entityType ?? null,
         entity_id: input.entityId ?? null,
         severity: input.severity ?? 'info',
+        confidence: input.confidence ?? 0.5,
         title: input.title,
         description: input.description ?? null,
         data: (input.data ?? {}) as SignalRow['data'],
-        metadata: {},
+        metadata: (input.metadata ?? {}) as SignalRow['metadata'],
       })
       return toSignal(row)
     },
@@ -284,16 +290,20 @@ export function createLearningService(db: SupabaseClient<Database>) {
       signalId: string,
       input: {
         severity?: LearningSignal['severity']
+        confidence?: number
         title?: string
         description?: string | null
         data?: Record<string, unknown>
+        metadata?: Record<string, unknown>
       }
     ): Promise<LearningSignal> {
       const row = await signalsRepo.update(signalId, {
         severity: input.severity,
+        confidence: input.confidence,
         title: input.title,
         description: input.description ?? undefined,
         data: input.data as SignalRow['data'] | undefined,
+        metadata: input.metadata as SignalRow['metadata'] | undefined,
       })
       return toSignal(row)
     },

@@ -17,6 +17,27 @@ export function createMemoriesRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async findBySourceId(
+      workspaceId: string,
+      sourceId: string,
+      type?: string
+    ): Promise<MemoryRow | null> {
+      let request = db
+        .from('memories')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .eq('source_id', sourceId)
+        .is('deleted_at', null)
+
+      if (type) {
+        request = request.eq('type', type)
+      }
+
+      const { data, error } = await request.maybeSingle()
+      if (error) throw error
+      return data
+    },
+
     async list(
       workspaceId: string,
       options: {

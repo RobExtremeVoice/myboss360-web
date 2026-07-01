@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, InsertTables } from '@/types/database'
+import type { SignalSeverity, SignalType } from '@/types/learning'
 import type {
   AnalyzedThread,
   CrmEmailLinkEntityType,
@@ -17,6 +18,7 @@ import { createDealsRepository } from '@/repositories/crm/deals'
 import { createCrmEmailLinksRepository } from '@/repositories/google/crm-email-links'
 import { createGmailContactsRepository } from '@/repositories/google/gmail-contacts'
 import { createGmailThreadsRepository } from '@/repositories/google/gmail-threads'
+import { createGmailKnowledgeIngestionService } from './gmail-knowledge-ingestion'
 import { generateRecommendations } from '@/services/intelligence/recommendation-engine'
 import { createLearningService } from '@/services/learning/learning-service'
 import { createMemoryService } from '@/services/memory/memory-service'
@@ -83,8 +85,25 @@ interface PriorityScoreResult {
   priorityLabel: PriorityLabel
 }
 
+interface ThreadSignalDefinition {
+  enabled: boolean
+  signalType: SignalType
+  severity: SignalSeverity
+  confidence: number
+  title: string
+  description: string
+}
+
 interface ThreadRelationshipResult extends RelationshipAnalysisResult, PriorityScoreResult {
   crmLinks: CrmLinkCandidate[]
+}
+
+interface NewRelationshipEvent {
+  entityType: 'company' | 'contact'
+  entityId: string
+  title: string
+  content: string
+  confidence: number
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -468,6 +487,48 @@ function toCrmLinkInsert(
   }
 }
 
+async function createMemoryIfMissing(
+  memoryService: ReturnType<typeof createMemoryService>,
+  params: {
+    workspaceId: string
+    organizationId: string
+    userId: string
+    sourceId: string
+    title: string
+    content: string
+    importance: 'low' | 'normal' | 'high' | 'critical'
+    entityType?: 'company' | 'contact' | 'deal' | 'workspace' | 'organization' | 'gmail_thread' | null
+    entityId?: string | null
+    confidence?: number | null
+    metadata?: Record<string, unknown>
+    isPinned?: boolean
+  }
+) {
+  const existing = await memoryService.findMemoryBySourceId(
+    params.workspaceId,
+    params.sourceId,
+    'observation'
+  )
+  if (existing) return existing
+
+  return memoryService.createMemory({
+    workspaceId: params.workspaceId,
+    organizationId: params.organizationId,
+    userId: params.userId,
+    type: 'observation',
+    source: 'integration',
+    sourceId: params.sourceId,
+    title: params.title,
+    content: params.content,
+    importance: params.importance,
+    entityType: params.entityType ?? null,
+    entityId: params.entityId ?? null,
+    confidence: params.confidence ?? null,
+    isPinned: params.isPinned ?? false,
+    metadata: params.metadata ?? {},
+  })
+}
+
 export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Database>) {
   const companiesRepo = createCompaniesRepository(db)
   const contactsRepo = createContactsRepository(db)
@@ -477,6 +538,7 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
   const crmEmailLinksRepo = createCrmEmailLinksRepository(db)
   const learningService = createLearningService(db)
   const memoryService = createMemoryService(db)
+  const knowledgeIngestionService = createGmailKnowledgeIngestionService(db)
 
   return {
     async processThreadRelationship(params: {
@@ -503,6 +565,7 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
       const linkedContactIds = new Set<string>()
       const linkedCompanyIds = new Set<string>()
       const crmLinkMap = new Map<string, CrmLinkCandidate>()
+      const newRelationships: NewRelationshipEvent[] = []
 
       for (const entry of participants) {
         if (entry.crmContactId) {
@@ -572,9 +635,11 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
               organizationId,
               userId,
               type: 'observation',
-              source: 'system',
+              source: 'integration',
+              sourceId: `gmail:relationship:${company.id}`,
               title: `Company inferred from email: ${company.name}`,
               content: `${entry.participant.contact.email} was linked to ${company.name} using the ${normalizedDomain} domain.`,
+              importance: 'high',
               entityType: 'company',
               entityId: company.id,
               confidence: companyConfidenceScore,
@@ -584,6 +649,14 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
                 gmailContactId: entry.gmailContact.id,
               },
             }).catch(() => null)
+
+            newRelationships.push({
+              entityType: 'company',
+              entityId: company.id,
+              title: `New important relationship: ${company.name}`,
+              content: `${company.name} was identified as a new relationship from Gmail activity.`,
+              confidence: companyConfidenceScore,
+            })
           } else if (!company.domain || company.domain !== normalizedDomain) {
             company = await companiesRepo.update(company.id, {
               domain: company.domain ?? normalizedDomain,
@@ -699,6 +772,125 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
         crmLinks.map((link) => toCrmLinkInsert(workspaceId, threadRow.id, link))
       )
 
+      const baseMetadata = {
+        source: 'gmail',
+        threadId: threadRow.id,
+        googleThreadId: analyzed.threadId,
+        priorityScore: priority.priorityScore,
+        priorityLabel: priority.priorityLabel,
+        responseStatus: relationship.responseStatus,
+        followUpRequired: relationship.followUpRequired,
+        followUpDue: relationship.followUpDue,
+        daysWaiting: relationship.daysWaiting,
+        threadHealth: relationship.threadHealth,
+        linkedEntities: crmLinks.map((link) => ({
+          entityType: link.entityType,
+          entityId: link.entityId,
+          confidenceScore: link.confidenceScore,
+        })),
+      }
+      const awaitingReply = relationship.responseStatus === 'waiting_for_me'
+      const hasDealLink = crmLinks.some((link) => link.entityType === 'deal')
+      const companyLabel = pickCompanyLabel(participants, analyzed)
+
+      if (priority.priorityLabel === 'critical') {
+        await createMemoryIfMissing(memoryService, {
+          workspaceId,
+          organizationId,
+          userId,
+          sourceId: `gmail:thread:${threadRow.id}:critical-priority`,
+          title: `Critical priority email: ${analyzed.subject ?? companyLabel}`,
+          content: `${companyLabel} has a critical priority email thread requiring immediate attention.`,
+          importance: 'critical',
+          entityType: 'gmail_thread',
+          entityId: threadRow.id,
+          confidence: 0.94,
+          isPinned: true,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      } else if (priority.priorityLabel === 'high') {
+        await createMemoryIfMissing(memoryService, {
+          workspaceId,
+          organizationId,
+          userId,
+          sourceId: `gmail:thread:${threadRow.id}:high-priority`,
+          title: `High priority email: ${analyzed.subject ?? companyLabel}`,
+          content: `${companyLabel} has a high priority email thread that should be reviewed soon.`,
+          importance: 'high',
+          entityType: 'gmail_thread',
+          entityId: threadRow.id,
+          confidence: 0.82,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      }
+
+      if (relationship.followUpRequired) {
+        await createMemoryIfMissing(memoryService, {
+          workspaceId,
+          organizationId,
+          userId,
+          sourceId: `gmail:thread:${threadRow.id}:follow-up-required`,
+          title: `Follow-up required: ${companyLabel}`,
+          content: `${companyLabel} has an email thread that requires follow-up.`,
+          importance: relationship.followUpPriority === 'critical' ? 'critical' : 'high',
+          entityType: 'gmail_thread',
+          entityId: threadRow.id,
+          confidence: 0.8,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      }
+
+      if (awaitingReply) {
+        await createMemoryIfMissing(memoryService, {
+          workspaceId,
+          organizationId,
+          userId,
+          sourceId: `gmail:thread:${threadRow.id}:awaiting-reply`,
+          title: `Awaiting executive reply: ${companyLabel}`,
+          content: `${companyLabel} is waiting for your reply on this email thread.`,
+          importance: priority.priorityLabel === 'critical' ? 'critical' : 'high',
+          entityType: 'gmail_thread',
+          entityId: threadRow.id,
+          confidence: 0.86,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      }
+
+      for (const relationshipEvent of newRelationships) {
+        await createMemoryIfMissing(memoryService, {
+          workspaceId,
+          organizationId,
+          userId,
+          sourceId: `gmail:new-relationship:${relationshipEvent.entityType}:${relationshipEvent.entityId}`,
+          title: relationshipEvent.title,
+          content: relationshipEvent.content,
+          importance: 'high',
+          entityType: relationshipEvent.entityType,
+          entityId: relationshipEvent.entityId,
+          confidence: relationshipEvent.confidence,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      }
+
+      if (hasDealLink) {
+        const topDeal = linkedDeals[0] ?? null
+        await createMemoryIfMissing(memoryService, {
+          workspaceId,
+          organizationId,
+          userId,
+          sourceId: `gmail:thread:${threadRow.id}:deal-related`,
+          title: `Deal-related email: ${analyzed.subject ?? companyLabel}`,
+          content: topDeal
+            ? `This email thread is linked to the deal "${topDeal.title}".`
+            : `This email thread is linked to an active deal.`,
+          importance: priority.priorityLabel === 'critical' ? 'critical' : 'high',
+          entityType: topDeal ? 'deal' : 'gmail_thread',
+          entityId: topDeal?.id ?? threadRow.id,
+          confidence: 0.84,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      }
+
       const existingSignals = await learningService.listSignals(workspaceId, {
         signalType: 'follow_up_delay',
         entityType: 'gmail_thread',
@@ -706,13 +898,18 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
         resolved: false,
         limit: 5,
       })
+      const existingFollowUpOverdueSignals = await learningService.listSignals(workspaceId, {
+        signalType: 'follow_up_overdue',
+        entityType: 'gmail_thread',
+        entityId: threadRow.id,
+        resolved: false,
+        limit: 1,
+      })
 
       const shouldCreateSignal =
         relationship.followUpRequired &&
         relationship.overdueDays !== null &&
         relationship.overdueDays > 0
-
-      const companyLabel = pickCompanyLabel(participants, analyzed)
 
       if (shouldCreateSignal) {
         const severity =
@@ -737,10 +934,23 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
         if (existingSignals[0]) {
           await learningService.updateSignal(existingSignals[0].id, {
             severity,
+            confidence: relationship.followUpPriority === 'critical' ? 0.95 : 0.82,
             title: `Follow-up overdue: ${companyLabel}`,
             description,
             data: signalData,
+            metadata: baseMetadata,
           })
+
+          if (existingFollowUpOverdueSignals[0]) {
+            await learningService.updateSignal(existingFollowUpOverdueSignals[0].id, {
+              severity,
+              confidence: relationship.followUpPriority === 'critical' ? 0.95 : 0.82,
+              title: `Follow-up overdue: ${companyLabel}`,
+              description,
+              data: signalData,
+              metadata: baseMetadata,
+            }).catch(() => null)
+          }
         } else {
           await learningService.createLearningSignal({
             workspaceId,
@@ -749,34 +959,179 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
             entityType: 'gmail_thread',
             entityId: threadRow.id,
             severity,
+            confidence: relationship.followUpPriority === 'critical' ? 0.95 : 0.82,
             title: `Follow-up overdue: ${companyLabel}`,
             description,
             data: signalData,
+            metadata: baseMetadata,
           })
+
+          await learningService.createLearningSignal({
+            workspaceId,
+            organizationId,
+            signalType: 'follow_up_overdue',
+            entityType: 'gmail_thread',
+            entityId: threadRow.id,
+            severity,
+            confidence: relationship.followUpPriority === 'critical' ? 0.95 : 0.82,
+            title: `Follow-up overdue: ${companyLabel}`,
+            description,
+            data: signalData,
+            metadata: baseMetadata,
+          }).catch(() => null)
         }
 
         if (
           previousThread?.follow_up_priority !== 'critical' &&
           relationship.followUpPriority === 'critical'
         ) {
-          await memoryService.createMemory({
+          await createMemoryIfMissing(memoryService, {
             workspaceId,
             organizationId,
             userId,
-            type: 'observation',
-            source: 'system',
-            title: `Critical follow-up risk: ${companyLabel}`,
+            sourceId: `gmail:thread:${threadRow.id}:customer-risk`,
+            title: `Customer risk signal: ${companyLabel}`,
             content: description,
+            importance: 'critical',
             entityType: 'workspace',
             entityId: workspaceId,
             confidence: 0.88,
-            metadata: signalData,
+            metadata: {
+              ...baseMetadata,
+              ...signalData,
+            },
+            isPinned: true,
           }).catch(() => null)
         }
       } else {
         await Promise.all(
           existingSignals.map((signal) => learningService.resolveSignal(signal.id).catch(() => null))
         )
+        await Promise.all(
+          existingFollowUpOverdueSignals.map((signal) =>
+            learningService.resolveSignal(signal.id).catch(() => null)
+          )
+        )
+      }
+
+      const threadSignals: ThreadSignalDefinition[] = [
+        {
+          enabled: priority.priorityLabel === 'critical' || priority.priorityLabel === 'high',
+          signalType: 'attention_required' as const,
+          severity: priority.priorityLabel === 'critical' ? ('critical' as const) : ('warning' as const),
+          confidence: priority.priorityLabel === 'critical' ? 0.96 : 0.81,
+          title: `Attention required: ${companyLabel}`,
+          description: `${companyLabel} has a ${priority.priorityLabel} priority email thread.`,
+        },
+        {
+          enabled: awaitingReply && relationship.daysWaiting !== null && relationship.daysWaiting > 0,
+          signalType: 'response_delay' as const,
+          severity:
+            relationship.daysWaiting !== null && relationship.daysWaiting >= 3
+              ? ('critical' as const)
+              : ('warning' as const),
+          confidence: awaitingReply ? 0.89 : 0.5,
+          title: `Response delay: ${companyLabel}`,
+          description: `${companyLabel} has been waiting ${relationship.daysWaiting ?? 0} day(s) for a reply.`,
+        },
+        {
+          enabled:
+            relationship.responseStatus === 'waiting_for_customer' &&
+            (relationship.daysWaiting ?? 0) >= intelligenceConfig.highPriorityFollowUpDays,
+          signalType: 'customer_inactivity' as const,
+          severity:
+            (relationship.daysWaiting ?? 0) >= intelligenceConfig.criticalPriorityFollowUpDays
+              ? ('critical' as const)
+              : ('warning' as const),
+          confidence: 0.78,
+          title: `Customer inactivity: ${companyLabel}`,
+          description: `${companyLabel} has not responded for ${relationship.daysWaiting ?? 0} day(s).`,
+        },
+        {
+          enabled: analyzed.messageCount >= 6,
+          signalType: 'communication_pattern' as const,
+          severity: 'info' as const,
+          confidence: 0.72,
+          title: `Communication pattern: ${companyLabel}`,
+          description: `${companyLabel} has an active recurring communication pattern in Gmail.`,
+        },
+        {
+          enabled: hasDealLink && (priority.priorityLabel === 'critical' || shouldCreateSignal),
+          signalType: 'deal_risk' as const,
+          severity: priority.priorityLabel === 'critical' ? ('critical' as const) : ('warning' as const),
+          confidence: 0.84,
+          title: `Deal risk in email: ${companyLabel}`,
+          description: `A deal-related email thread indicates execution risk or a stalled response.`,
+        },
+      ]
+
+      for (const signal of threadSignals) {
+        const existing = await learningService.listSignals(workspaceId, {
+          signalType: signal.signalType,
+          entityType: 'gmail_thread',
+          entityId: threadRow.id,
+          resolved: false,
+          limit: 1,
+        })
+
+        if (!signal.enabled) {
+          if (existing[0]) {
+            await learningService.resolveSignal(existing[0].id).catch(() => null)
+          }
+          continue
+        }
+
+        if (existing[0]) {
+          await learningService.updateSignal(existing[0].id, {
+            severity: signal.severity,
+            confidence: signal.confidence,
+            title: signal.title,
+            description: signal.description,
+            data: baseMetadata,
+            metadata: baseMetadata,
+          }).catch(() => null)
+          continue
+        }
+
+        await learningService.createLearningSignal({
+          workspaceId,
+          organizationId,
+          signalType: signal.signalType,
+          entityType: 'gmail_thread',
+          entityId: threadRow.id,
+          severity: signal.severity,
+          confidence: signal.confidence,
+          title: signal.title,
+          description: signal.description,
+          data: baseMetadata,
+          metadata: baseMetadata,
+        }).catch(() => null)
+      }
+
+      for (const relationshipEvent of newRelationships) {
+        const existing = await learningService.listSignals(workspaceId, {
+          signalType: 'new_relationship',
+          entityType: relationshipEvent.entityType,
+          entityId: relationshipEvent.entityId,
+          resolved: false,
+          limit: 1,
+        })
+
+        if (!existing[0]) {
+          await learningService.createLearningSignal({
+            workspaceId,
+            organizationId,
+            signalType: 'new_relationship',
+            entityType: relationshipEvent.entityType,
+            entityId: relationshipEvent.entityId,
+            severity: 'info',
+            confidence: relationshipEvent.confidence,
+            title: relationshipEvent.title,
+            description: relationshipEvent.content,
+            data: baseMetadata,
+            metadata: baseMetadata,
+          }).catch(() => null)
+        }
       }
 
       await learningService.detectPatterns(workspaceId, organizationId).catch(() => null)
@@ -796,6 +1151,19 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
           { userId }
         ).catch(() => null)
       }
+
+      await knowledgeIngestionService.ingestThread({
+        workspaceId,
+        organizationId,
+        userId,
+        googleThreadId: analyzed.threadId,
+        analyzed,
+        priorityScore: priority.priorityScore,
+        priorityLabel: priority.priorityLabel,
+        followUpRequired: relationship.followUpRequired,
+        awaitingReply,
+        crmLinks,
+      }).catch(() => null)
 
       return {
         ...relationship,

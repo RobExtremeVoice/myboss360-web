@@ -94,6 +94,52 @@ Upcoming meetings: ${m.upcomingMeetingsCount}`)
     sections.push(`--- TODAY'S AGENDA ---\n${agendaLines}`)
   }
 
+  if (
+    context.emailIntelligence.criticalThreads.length > 0 ||
+    context.emailIntelligence.awaitingReplies.length > 0 ||
+    context.emailIntelligence.overdueFollowUps.length > 0
+  ) {
+    const emailLines: string[] = []
+
+    if (context.emailIntelligence.criticalThreads.length > 0) {
+      emailLines.push(
+        `Critical threads: ${context.emailIntelligence.criticalThreads
+          .slice(0, 3)
+          .map((thread) => thread.subject ?? thread.threadId)
+          .join(' | ')}`
+      )
+    }
+
+    if (context.emailIntelligence.awaitingReplies.length > 0) {
+      emailLines.push(
+        `Awaiting your reply: ${context.emailIntelligence.awaitingReplies
+          .slice(0, 3)
+          .map((thread) => thread.subject ?? thread.threadId)
+          .join(' | ')}`
+      )
+    }
+
+    if (context.emailIntelligence.overdueFollowUps.length > 0) {
+      emailLines.push(
+        `Overdue follow-ups: ${context.emailIntelligence.overdueFollowUps
+          .slice(0, 3)
+          .map((thread) => thread.subject ?? thread.threadId)
+          .join(' | ')}`
+      )
+    }
+
+    if (context.emailIntelligence.dealRelatedThreads.length > 0) {
+      emailLines.push(
+        `Deal-related email: ${context.emailIntelligence.dealRelatedThreads
+          .slice(0, 3)
+          .map((thread) => thread.subject ?? thread.threadId)
+          .join(' | ')}`
+      )
+    }
+
+    sections.push(`--- EMAIL INTELLIGENCE ---\n${emailLines.join('\n')}`)
+  }
+
   // Important tasks
   const overdueTasks = context.importantTasks.filter((t) => t.isOverdue)
   if (overdueTasks.length > 0) {

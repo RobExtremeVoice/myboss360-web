@@ -11,7 +11,9 @@ export type MemoryType =
   | 'accepted_recommendation'
   | 'rejected_recommendation'
 
-export type MemorySource = 'manual' | 'ai_generated' | 'crm_event' | 'system'
+export type MemorySource = 'manual' | 'ai_generated' | 'crm_event' | 'system' | 'integration'
+
+export type MemoryImportance = 'low' | 'normal' | 'high' | 'critical'
 
 export type MemoryEventType = 'created' | 'updated' | 'accessed' | 'archived' | 'expired'
 
@@ -23,6 +25,7 @@ export type MemoryEntityType =
   | 'task'
   | 'workspace'
   | 'organization'
+  | 'gmail_thread'
 
 export interface Memory {
   id: string
@@ -33,9 +36,11 @@ export interface Memory {
   title: string
   content: string
   source: MemorySource
+  sourceId: string | null
   entityType: MemoryEntityType | null
   entityId: string | null
   confidence: number | null
+  importance: MemoryImportance
   isPinned: boolean
   expiresAt: string | null
   metadata: Record<string, unknown>
@@ -61,9 +66,11 @@ export interface CreateMemoryInput {
   title: string
   content: string
   source?: MemorySource
+  sourceId?: string | null
   entityType?: MemoryEntityType | null
   entityId?: string | null
   confidence?: number | null
+  importance?: MemoryImportance
   isPinned?: boolean
   expiresAt?: string | null
   metadata?: Record<string, unknown>

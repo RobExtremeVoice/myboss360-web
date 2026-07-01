@@ -8,6 +8,12 @@ export type SignalType =
   | 'performance_trend'
   | 'recommended_action'
   | 'workspace_created'
+  | 'new_relationship'
+  | 'attention_required'
+  | 'follow_up_overdue'
+  | 'customer_inactivity'
+  | 'communication_pattern'
+  | 'response_delay'
 
 export type SignalSeverity = 'info' | 'warning' | 'critical'
 
@@ -36,9 +42,11 @@ export interface LearningSignal {
   entityType: string | null
   entityId: string | null
   severity: SignalSeverity
+  confidence: number
   title: string
   description: string | null
   data: Record<string, unknown>
+  metadata: Record<string, unknown>
   detectedAt: string
   resolvedAt: string | null
   createdAt: string
@@ -98,9 +106,11 @@ export interface CreateSignalInput {
   entityType?: string | null
   entityId?: string | null
   severity?: SignalSeverity
+  confidence?: number
   title: string
   description?: string | null
   data?: Record<string, unknown>
+  metadata?: Record<string, unknown>
 }
 
 export interface CreateRecommendationInput {

@@ -18,6 +18,7 @@ export const memorySourceLabels: Record<MemorySource, string> = {
   manual: 'Manual Entry',
   ai_generated: 'AI Generated',
   crm_event: 'CRM Event',
+  integration: 'Integration Event',
   system: 'System',
 }
 
