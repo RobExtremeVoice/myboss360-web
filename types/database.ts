@@ -1356,6 +1356,330 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_collections: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          name: string
+          description: string | null
+          slug: string
+          is_default: boolean
+          metadata: Json
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          name: string
+          description?: string | null
+          slug: string
+          is_default?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          name?: string
+          description?: string | null
+          slug?: string
+          is_default?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      knowledge_sources: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          name: string
+          source_type: string
+          config: Json
+          last_sync_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          name: string
+          source_type?: string
+          config?: Json
+          last_sync_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          name?: string
+          source_type?: string
+          config?: Json
+          last_sync_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      knowledge_documents: {
+        Row: {
+          id: string
+          workspace_id: string
+          organization_id: string
+          collection_id: string | null
+          source_id: string | null
+          title: string
+          content: string
+          object_type: string
+          category: string
+          status: string
+          version: number
+          word_count: number | null
+          metadata: Json
+          created_by: string
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          organization_id: string
+          collection_id?: string | null
+          source_id?: string | null
+          title: string
+          content?: string
+          object_type: string
+          category: string
+          status?: string
+          version?: number
+          word_count?: number | null
+          metadata?: Json
+          created_by: string
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          organization_id?: string
+          collection_id?: string | null
+          source_id?: string | null
+          title?: string
+          content?: string
+          object_type?: string
+          category?: string
+          status?: string
+          version?: number
+          word_count?: number | null
+          metadata?: Json
+          created_by?: string
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      knowledge_chunks: {
+        Row: {
+          id: string
+          document_id: string
+          workspace_id: string
+          chunk_index: number
+          content: string
+          chunk_strategy: string
+          token_count: number | null
+          embedding_id: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id: string
+          workspace_id: string
+          chunk_index: number
+          content: string
+          chunk_strategy?: string
+          token_count?: number | null
+          embedding_id?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string
+          workspace_id?: string
+          chunk_index?: number
+          content?: string
+          chunk_strategy?: string
+          token_count?: number | null
+          embedding_id?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      knowledge_tags: {
+        Row: {
+          id: string
+          workspace_id: string
+          name: string
+          slug: string
+          color: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          name: string
+          slug: string
+          color?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          name?: string
+          slug?: string
+          color?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_tags: {
+        Row: {
+          document_id: string
+          tag_id: string
+          created_at: string
+        }
+        Insert: {
+          document_id: string
+          tag_id: string
+          created_at?: string
+        }
+        Update: {
+          document_id?: string
+          tag_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      knowledge_links: {
+        Row: {
+          id: string
+          workspace_id: string
+          source_document_id: string
+          target_document_id: string
+          link_type: string
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          source_document_id: string
+          target_document_id: string
+          link_type?: string
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          source_document_id?: string
+          target_document_id?: string
+          link_type?: string
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      document_versions: {
+        Row: {
+          id: string
+          document_id: string
+          version: number
+          content: string
+          title: string
+          changed_by: string
+          change_note: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id: string
+          version: number
+          content: string
+          title: string
+          changed_by: string
+          change_note?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string
+          version?: number
+          content?: string
+          title?: string
+          changed_by?: string
+          change_note?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      document_permissions: {
+        Row: {
+          id: string
+          document_id: string
+          workspace_id: string
+          user_id: string | null
+          role_id: string | null
+          permission_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id: string
+          workspace_id: string
+          user_id?: string | null
+          role_id?: string | null
+          permission_type?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string
+          workspace_id?: string
+          user_id?: string | null
+          role_id?: string | null
+          permission_type?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
