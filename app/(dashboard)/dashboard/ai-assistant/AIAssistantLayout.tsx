@@ -1,11 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { lazy, Suspense, useState } from "react"
 import { AIChatWindow } from "@/components/ai/AIChatWindow"
 import { AIConversationSidebar } from "@/components/ai/AIConversationSidebar"
 import { ExecutiveContextPanel } from "@/components/ai/ExecutiveContextPanel"
 import { BossIntelligencePanel } from "@/components/ai/BossIntelligencePanel"
-import { PromptPreviewPanel } from "@/components/ai/PromptPreviewPanel"
+
+const PromptPreviewPanel = lazy(() =>
+  import("@/components/ai/PromptPreviewPanel").then((m) => ({
+    default: m.PromptPreviewPanel,
+  }))
+)
 import type { ConversationListItem } from "@/types/ai"
 import type { ExecutiveMetrics, IntelligenceContext } from "@/types/intelligence"
 import type { BossIntelligenceSummary } from "@/types/executive"
@@ -55,7 +60,7 @@ export function AIAssistantLayout({
           Executive AI
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Grounded in your live business context. Powered by Mock Provider.
+          Grounded in your live business context — email, calendar, CRM, and relationship data.
         </p>
       </div>
 
@@ -88,14 +93,15 @@ export function AIAssistantLayout({
           ) : null}
 
           {devToolsEnabled && context ? (
-            <PromptPreviewPanel context={context} userFullName={userFullName} />
+            <Suspense fallback={null}>
+              <PromptPreviewPanel context={context} userFullName={userFullName} />
+            </Suspense>
           ) : null}
 
           <div className="rounded-xl border border-black/6 bg-slate-50 p-3 text-xs text-slate-500">
-            <p className="font-medium text-slate-700">About Mock Provider</p>
+            <p className="font-medium text-slate-700">Executive AI</p>
             <p className="mt-1 leading-5">
-              Responses are deterministic and data-driven. Connect OpenAI,
-              Anthropic, or Gemini for generative AI analysis.
+              Responses are grounded in your live business data. Connect an AI provider in Settings to enable generative analysis.
             </p>
           </div>
         </div>

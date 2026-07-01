@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { MessageSquarePlus, MessagesSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ConversationListItem } from "@/types/ai"
@@ -23,7 +24,7 @@ function formatRelative(isoDate: string): string {
   return `${days}d ago`
 }
 
-export function AIConversationSidebar({
+export const AIConversationSidebar = memo(function AIConversationSidebar({
   conversations,
   activeId,
   onSelect,
@@ -40,8 +41,8 @@ export function AIConversationSidebar({
         <button
           type="button"
           onClick={onNew}
-          className="flex size-7 items-center justify-center rounded-lg border border-black/8 bg-white text-slate-500 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
-          title="New conversation"
+          className="flex size-7 items-center justify-center rounded-lg border border-black/8 bg-white text-slate-500 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+          aria-label="New conversation"
         >
           <MessageSquarePlus className="size-3.5" />
         </button>
@@ -83,4 +84,4 @@ export function AIConversationSidebar({
       </div>
     </aside>
   )
-}
+})

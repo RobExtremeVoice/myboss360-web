@@ -17,6 +17,14 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
+      {/* Skip navigation link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       <div className="flex min-h-screen">
         <div className="hidden w-80 shrink-0 lg:block">
           <Sidebar />
@@ -24,7 +32,12 @@ export function AppShell({ children }: AppShellProps) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onMenuToggle={() => setIsMobileSidebarOpen(true)} />
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <main
+            id="main-content"
+            role="main"
+            className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+            tabIndex={-1}
+          >
             <div className="mx-auto w-full max-w-7xl">{children}</div>
           </main>
         </div>

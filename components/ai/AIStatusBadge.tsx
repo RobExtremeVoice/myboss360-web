@@ -14,7 +14,7 @@ const statusStyles = {
 } as const
 
 export function AIStatusBadge({
-  providerName = "Mock Provider",
+  providerName = "Executive AI",
   status = "active",
 }: Props) {
   return (

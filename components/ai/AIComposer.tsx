@@ -60,7 +60,7 @@ export function AIComposer({ onSend, isLoading, disabled }: Props) {
           onClick={handleSubmit}
           disabled={!canSend}
           className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-full transition-all",
+            "flex size-8 shrink-0 items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2",
             canSend
               ? "bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95"
               : "bg-slate-100 text-slate-400 cursor-not-allowed"

@@ -95,9 +95,7 @@ export default async function DashboardPage() {
           description={emptyState.description}
         >
           <p className="text-sm leading-6 text-slate-600">
-            The dashboard is connected and ready. As soon as live Supabase records appear in
-            this workspace, executive metrics will render here automatically without requiring
-            any UI changes.
+            Your Executive OS is ready. Connect your data sources — Gmail, Calendar, and CRM — and your metrics, signals, and briefings will appear here automatically.
           </p>
         </SectionCard>
       ) : null}
