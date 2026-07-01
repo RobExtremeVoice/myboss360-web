@@ -27,8 +27,11 @@ export async function POST(request: Request) {
   const workspaces = await workspacesRepo.listForUser(user.id)
   if (workspaces.length === 0) {
     return NextResponse.json(
-      { error: 'No workspace found for this user.' },
-      { status: 404 }
+      {
+        error: 'Your account does not have a workspace yet. Please complete onboarding first.',
+        code: 'no_workspace',
+      },
+      { status: 503 }
     )
   }
   const ws =

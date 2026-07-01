@@ -150,6 +150,11 @@ export function AIChatWindow({
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+            {error && (
+              <p className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+                {error}
+              </p>
+            )}
             <div className="flex size-14 items-center justify-center rounded-full border border-indigo-200 bg-indigo-50">
               <Bot className="size-7 text-indigo-500" />
             </div>
