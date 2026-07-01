@@ -56,6 +56,30 @@ export function createCompaniesRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async findByDomain(workspaceId: string, domain: string): Promise<Row | null> {
+      const { data, error } = await db
+        .from('companies')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .ilike('domain', domain)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (error) throw error
+      return data
+    },
+
+    async findByName(workspaceId: string, name: string): Promise<Row | null> {
+      const { data, error } = await db
+        .from('companies')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .ilike('name', name)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (error) throw error
+      return data
+    },
+
     async create(input: InsertTables<'companies'>): Promise<Row> {
       const { data, error } = await db
         .from('companies')

@@ -7,6 +7,13 @@ export const intelligenceConfig = {
   staleContactDays: 30,
   // Days a follow-up can be overdue before signal fires
   followUpThresholdDays: 7,
+  // Gmail relationship intelligence thresholds
+  activeConversationWindowHours: 36,
+  inboundReplySlaHours: 24,
+  outboundFollowUpSlaHours: 72,
+  conversationClosedAfterDays: 30,
+  highPriorityFollowUpDays: 3,
+  criticalPriorityFollowUpDays: 7,
   // Days before a task is flagged as delayed (0 = any past due_date)
   taskOverdueThresholdDays: 0,
   // Maximum items in top risks / opportunities

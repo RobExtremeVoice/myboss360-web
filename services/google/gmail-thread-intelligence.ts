@@ -18,6 +18,7 @@ import { createGmailThreadsRepository, createGmailMessagesRepository } from '@/r
 import { createGmailContactsRepository, createGmailParticipantsRepository } from '@/repositories/google/gmail-contacts'
 import { createContactsRepository } from '@/repositories/crm/contacts'
 import { createMemoryService } from '@/services/memory/memory-service'
+import { createGmailRelationshipIntelligenceService } from './gmail-relationship-intelligence'
 import {
   parseEmailAddress,
   parseAddressList,
@@ -84,10 +85,24 @@ function computeLatencies(messages: NormalizedMessage[]): {
   if (messages.length < 2) return { avg: null, last: null }
 
   const sorted = [...messages].sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime())
-  const gaps: number[] = []
+  const turns: NormalizedMessage[] = [sorted[0]]
 
   for (let i = 1; i < sorted.length; i++) {
-    gaps.push(sorted[i].sentAt.getTime() - sorted[i - 1].sentAt.getTime())
+    const current = sorted[i]
+    const previous = turns[turns.length - 1]
+
+    if (current.isOutbound === previous.isOutbound) {
+      turns[turns.length - 1] = current
+    } else {
+      turns.push(current)
+    }
+  }
+
+  if (turns.length < 2) return { avg: null, last: null }
+
+  const gaps: number[] = []
+  for (let i = 1; i < turns.length; i++) {
+    gaps.push(turns[i].sentAt.getTime() - turns[i - 1].sentAt.getTime())
   }
 
   const avg = Math.round(gaps.reduce((s, g) => s + g, 0) / gaps.length)
@@ -171,6 +186,7 @@ export function createGmailThreadIntelligenceService(db: SupabaseClient<Database
   const participantsRepo = createGmailParticipantsRepository(db)
   const crmContactsRepo = createContactsRepository(db)
   const memoryService = createMemoryService(db)
+  const relationshipService = createGmailRelationshipIntelligenceService(db)
   const apiClient = createGmailApiClient()
 
   return {
@@ -202,6 +218,7 @@ export function createGmailThreadIntelligenceService(db: SupabaseClient<Database
 
       // ── 3. Analyze thread (Part 3) ────────────────────────────────────────
       const analyzed = analyzeThread(rawThread, executiveEmail)
+      const previousThread = await threadsRepo.findByGoogleThreadId(connectionId, googleThreadId)
 
       // ── 4. Persist gmail_threads row ──────────────────────────────────────
       const threadRow = await threadsRepo.upsert({
@@ -244,6 +261,11 @@ export function createGmailThreadIntelligenceService(db: SupabaseClient<Database
 
       // ── 6. Extract contacts (Part 4) ──────────────────────────────────────
       const participants = extractParticipants(analyzed.messages, executiveEmail)
+      const relationshipParticipants: Array<{
+        participant: (typeof participants)[number]
+        gmailContact: Awaited<ReturnType<typeof gmailContactsRepo.upsert>>
+        crmContactId: string | null
+      }> = []
 
       for (const p of participants) {
         const { contact, role, messageCount } = p
@@ -316,7 +338,29 @@ export function createGmailThreadIntelligenceService(db: SupabaseClient<Database
           role,
           message_count: messageCount,
         })
+
+        relationshipParticipants.push({
+          participant: p,
+          gmailContact: {
+            ...gmailContact,
+            display_name: contact.displayName ?? gmailContact.display_name,
+            organization: contact.organization ?? gmailContact.organization,
+            signature_hint: contact.signatureHint ?? gmailContact.signature_hint,
+            crm_contact_id: crmContactId,
+          },
+          crmContactId,
+        })
       }
+
+      await relationshipService.processThreadRelationship({
+        workspaceId,
+        organizationId,
+        userId,
+        threadRow,
+        previousThread,
+        analyzed,
+        participants: relationshipParticipants,
+      })
 
       return analyzed
     },

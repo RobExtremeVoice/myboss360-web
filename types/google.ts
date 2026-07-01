@@ -236,6 +236,16 @@ export type ThreadStatus =
   | 'waiting_for_customer'
   | 'closed'
 
+export type ResponseStatus =
+  | 'waiting_for_me'
+  | 'waiting_for_customer'
+  | 'conversation_closed'
+  | 'conversation_active'
+
+export type FollowUpPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export type ThreadHealth = 'healthy' | 'watch' | 'stale' | 'critical' | 'closed'
+
 export interface NormalizedMessage {
   messageId: string
   fromEmail: string

@@ -264,6 +264,44 @@ export function createLearningService(db: SupabaseClient<Database>) {
       })
       return rows.map(toPattern)
     },
+
+    async listSignals(
+      workspaceId: string,
+      options: {
+        signalType?: string
+        entityType?: string
+        entityId?: string
+        severity?: string
+        resolved?: boolean
+        limit?: number
+      } = {}
+    ): Promise<LearningSignal[]> {
+      const rows = await signalsRepo.list(workspaceId, options)
+      return rows.map(toSignal)
+    },
+
+    async updateSignal(
+      signalId: string,
+      input: {
+        severity?: LearningSignal['severity']
+        title?: string
+        description?: string | null
+        data?: Record<string, unknown>
+      }
+    ): Promise<LearningSignal> {
+      const row = await signalsRepo.update(signalId, {
+        severity: input.severity,
+        title: input.title,
+        description: input.description ?? undefined,
+        data: input.data as SignalRow['data'] | undefined,
+      })
+      return toSignal(row)
+    },
+
+    async resolveSignal(signalId: string): Promise<LearningSignal> {
+      const row = await signalsRepo.resolve(signalId)
+      return toSignal(row)
+    },
   }
 }
 

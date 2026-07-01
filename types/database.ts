@@ -1796,9 +1796,12 @@ export type Database = {
           email: string
           display_name: string | null
           domain: string
+          normalized_domain: string | null
           organization: string | null
           signature_hint: string | null
           crm_contact_id: string | null
+          crm_company_id: string | null
+          company_confidence_score: number | null
           first_seen_at: string
           last_seen_at: string
           message_count: number
@@ -1812,9 +1815,12 @@ export type Database = {
           email: string
           display_name?: string | null
           domain: string
+          normalized_domain?: string | null
           organization?: string | null
           signature_hint?: string | null
           crm_contact_id?: string | null
+          crm_company_id?: string | null
+          company_confidence_score?: number | null
           first_seen_at?: string
           last_seen_at?: string
           message_count?: number
@@ -1828,9 +1834,12 @@ export type Database = {
           email?: string
           display_name?: string | null
           domain?: string
+          normalized_domain?: string | null
           organization?: string | null
           signature_hint?: string | null
           crm_contact_id?: string | null
+          crm_company_id?: string | null
+          company_confidence_score?: number | null
           first_seen_at?: string
           last_seen_at?: string
           message_count?: number
@@ -1949,6 +1958,13 @@ export type Database = {
           participant_emails: string[]
           avg_response_latency_ms: number | null
           last_response_latency_ms: number | null
+          response_status: string
+          conversation_age_days: number
+          thread_health: string
+          follow_up_required: boolean
+          follow_up_due: string | null
+          days_waiting: number | null
+          follow_up_priority: string | null
           last_synced_at: string | null
           created_at: string
           updated_at: string
@@ -1969,6 +1985,13 @@ export type Database = {
           participant_emails?: string[]
           avg_response_latency_ms?: number | null
           last_response_latency_ms?: number | null
+          response_status?: string
+          conversation_age_days?: number
+          thread_health?: string
+          follow_up_required?: boolean
+          follow_up_due?: string | null
+          days_waiting?: number | null
+          follow_up_priority?: string | null
           last_synced_at?: string | null
           created_at?: string
           updated_at?: string
@@ -1989,6 +2012,13 @@ export type Database = {
           participant_emails?: string[]
           avg_response_latency_ms?: number | null
           last_response_latency_ms?: number | null
+          response_status?: string
+          conversation_age_days?: number
+          thread_health?: string
+          follow_up_required?: boolean
+          follow_up_due?: string | null
+          days_waiting?: number | null
+          follow_up_priority?: string | null
           last_synced_at?: string | null
           created_at?: string
           updated_at?: string

@@ -14,6 +14,17 @@ const PERSONAL_DOMAINS = new Set([
   'yandex.com', 'yandex.ru',
 ])
 
+const MULTIPART_TLDS = new Set([
+  'co.uk',
+  'com.au',
+  'com.br',
+  'com.mx',
+  'co.jp',
+  'co.in',
+  'co.nz',
+  'com.sg',
+])
+
 // ─── Signature detection patterns ────────────────────────────────────────────
 const SIGNATURE_DELIMITERS = [
   /^-- ?$/m,
@@ -102,12 +113,31 @@ export function extractDomain(email: string): string {
   return at >= 0 ? email.slice(at + 1).toLowerCase() : ''
 }
 
+export function isPublicEmailProvider(domain: string): boolean {
+  return PERSONAL_DOMAINS.has(domain.toLowerCase())
+}
+
+export function normalizeBusinessDomain(domain: string): string {
+  const value = domain.trim().toLowerCase()
+  if (!value) return ''
+
+  const parts = value.split('.').filter(Boolean)
+  if (parts.length <= 2) return value
+
+  const lastTwo = `${parts[parts.length - 2]}.${parts[parts.length - 1]}`
+  if (MULTIPART_TLDS.has(lastTwo) && parts.length >= 3) {
+    return `${parts[parts.length - 3]}.${lastTwo}`
+  }
+
+  return `${parts[parts.length - 2]}.${parts[parts.length - 1]}`
+}
+
 /**
  * Derive a human-readable organization name from a domain.
  * Returns null for personal email providers and unrecognizable domains.
  */
 export function extractOrganization(domain: string): string | null {
-  if (!domain || PERSONAL_DOMAINS.has(domain)) return null
+  if (!domain || isPublicEmailProvider(domain)) return null
 
   // Strip known TLDs and take the second-to-last segment as the org name.
   // e.g. "mail.bigcorp.co.uk" → "bigcorp", "acme.io" → "acme"
