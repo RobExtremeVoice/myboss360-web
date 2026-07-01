@@ -453,6 +453,42 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_email_links: {
+        Row: {
+          id: string
+          workspace_id: string
+          gmail_thread_id: string
+          entity_type: string
+          entity_id: string
+          confidence_score: number
+          match_reason: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          gmail_thread_id: string
+          entity_type: string
+          entity_id: string
+          confidence_score: number
+          match_reason: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          gmail_thread_id?: string
+          entity_type?: string
+          entity_id?: string
+          confidence_score?: number
+          match_reason?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       activities: {
         Row: {
           id: string
@@ -1965,6 +2001,8 @@ export type Database = {
           follow_up_due: string | null
           days_waiting: number | null
           follow_up_priority: string | null
+          priority_score: number
+          priority_label: string
           last_synced_at: string | null
           created_at: string
           updated_at: string
@@ -1992,6 +2030,8 @@ export type Database = {
           follow_up_due?: string | null
           days_waiting?: number | null
           follow_up_priority?: string | null
+          priority_score?: number
+          priority_label?: string
           last_synced_at?: string | null
           created_at?: string
           updated_at?: string
@@ -2019,6 +2059,8 @@ export type Database = {
           follow_up_due?: string | null
           days_waiting?: number | null
           follow_up_priority?: string | null
+          priority_score?: number
+          priority_label?: string
           last_synced_at?: string | null
           created_at?: string
           updated_at?: string

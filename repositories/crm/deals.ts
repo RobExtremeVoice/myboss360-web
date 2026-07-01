@@ -72,6 +72,34 @@ export function createDealsRepository(db: SupabaseClient<Database>) {
       return data
     },
 
+    async listByContactIds(workspaceId: string, contactIds: string[]): Promise<Row[]> {
+      if (contactIds.length === 0) return []
+
+      const { data, error } = await db
+        .from('deals')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .in('contact_id', contactIds)
+        .is('deleted_at', null)
+        .order('value', { ascending: false, nullsFirst: false })
+      if (error) throw error
+      return data ?? []
+    },
+
+    async listByCompanyIds(workspaceId: string, companyIds: string[]): Promise<Row[]> {
+      if (companyIds.length === 0) return []
+
+      const { data, error } = await db
+        .from('deals')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .in('company_id', companyIds)
+        .is('deleted_at', null)
+        .order('value', { ascending: false, nullsFirst: false })
+      if (error) throw error
+      return data ?? []
+    },
+
     async create(input: InsertTables<'deals'>): Promise<Row> {
       const { data, error } = await db
         .from('deals')

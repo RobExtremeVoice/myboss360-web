@@ -1,9 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database'
+import type { Database, InsertTables } from '@/types/database'
 import type {
   AnalyzedThread,
+  CrmEmailLinkEntityType,
   ExtractedParticipant,
   FollowUpPriority,
+  PriorityLabel,
   ResponseStatus,
   ThreadHealth,
 } from '@/types/google'
@@ -11,6 +13,8 @@ import type { PatternDetectionResult } from '@/services/intelligence/pattern-det
 import { intelligenceConfig } from '@/config/intelligence'
 import { createCompaniesRepository } from '@/repositories/crm/companies'
 import { createContactsRepository } from '@/repositories/crm/contacts'
+import { createDealsRepository } from '@/repositories/crm/deals'
+import { createCrmEmailLinksRepository } from '@/repositories/google/crm-email-links'
 import { createGmailContactsRepository } from '@/repositories/google/gmail-contacts'
 import { createGmailThreadsRepository } from '@/repositories/google/gmail-threads'
 import { generateRecommendations } from '@/services/intelligence/recommendation-engine'
@@ -25,6 +29,30 @@ import {
 type GmailContactRow = Database['public']['Tables']['gmail_contacts']['Row']
 type GmailThreadRow = Database['public']['Tables']['gmail_threads']['Row']
 type CompanyRow = Database['public']['Tables']['companies']['Row']
+type ContactRow = Database['public']['Tables']['contacts']['Row']
+type DealRow = Database['public']['Tables']['deals']['Row']
+
+const STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'the',
+  'for',
+  'with',
+  'from',
+  'your',
+  'our',
+  'this',
+  'that',
+  'about',
+  'into',
+  'onto',
+  'regarding',
+  'update',
+  'follow',
+  'email',
+  'thread',
+])
 
 interface RelationshipParticipant {
   participant: ExtractedParticipant
@@ -41,6 +69,22 @@ interface RelationshipAnalysisResult {
   daysWaiting: number | null
   followUpPriority: FollowUpPriority | null
   overdueDays: number | null
+}
+
+interface CrmLinkCandidate {
+  entityType: CrmEmailLinkEntityType
+  entityId: string
+  confidenceScore: number
+  matchReasons: string[]
+}
+
+interface PriorityScoreResult {
+  priorityScore: number
+  priorityLabel: PriorityLabel
+}
+
+interface ThreadRelationshipResult extends RelationshipAnalysisResult, PriorityScoreResult {
+  crmLinks: CrmLinkCandidate[]
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -68,6 +112,17 @@ function daysSince(date: Date): number {
 
 function hoursSince(date: Date): number {
   return Math.max(0, Math.floor((Date.now() - date.getTime()) / 3_600_000))
+}
+
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function tokenize(value: string): string[] {
+  return normalizeText(value)
+    .split(' ')
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2 && !STOP_WORDS.has(token))
 }
 
 function computeCompanyConfidence(participant: ExtractedParticipant, normalizedDomain: string): number {
@@ -126,10 +181,7 @@ function analyzeThreadRelationship(analyzed: AnalyzedThread): RelationshipAnalys
   const hasOutbound = analyzed.messages.some((message) => message.isOutbound)
 
   let responseStatus: ResponseStatus
-  if (
-    isClosedByLabel ||
-    waitingDays >= intelligenceConfig.conversationClosedAfterDays
-  ) {
+  if (isClosedByLabel || waitingDays >= intelligenceConfig.conversationClosedAfterDays) {
     responseStatus = 'conversation_closed'
   } else if (
     hasInbound &&
@@ -237,11 +289,192 @@ function buildRecommendationResult(
   }
 }
 
+function buildThreadCorpus(analyzed: AnalyzedThread): string {
+  const parts = [
+    analyzed.subject,
+    analyzed.snippet,
+    ...analyzed.messages.flatMap((message) => [
+      message.subject,
+      message.snippet,
+      message.bodyText,
+      ...message.attachmentNames,
+    ]),
+  ]
+  return normalizeText(parts.filter(Boolean).join(' '))
+}
+
+function countKeywordMatches(text: string, keywords: string[]): number {
+  return keywords.filter((keyword) => text.includes(keyword)).length
+}
+
+function mergeLinkCandidate(map: Map<string, CrmLinkCandidate>, candidate: CrmLinkCandidate) {
+  const key = `${candidate.entityType}:${candidate.entityId}`
+  const existing = map.get(key)
+
+  if (!existing) {
+    map.set(key, {
+      ...candidate,
+      confidenceScore: Number(clamp(candidate.confidenceScore, 0, 0.98).toFixed(2)),
+      matchReasons: [...new Set(candidate.matchReasons)],
+    })
+    return
+  }
+
+  map.set(key, {
+    ...existing,
+    confidenceScore: Number(clamp(Math.max(existing.confidenceScore, candidate.confidenceScore), 0, 0.98).toFixed(2)),
+    matchReasons: [...new Set([...existing.matchReasons, ...candidate.matchReasons])],
+  })
+}
+
+function hasDirectQuestion(analyzed: AnalyzedThread, corpus: string): boolean {
+  const lastMessage = analyzed.messages[analyzed.messages.length - 1]
+  if (!lastMessage) return false
+
+  if ((lastMessage.bodyText ?? '').includes('?') || (lastMessage.snippet ?? '').includes('?')) {
+    return true
+  }
+
+  return intelligenceConfig.priorityDirectQuestionKeywords.some((keyword) => corpus.includes(keyword))
+}
+
+function matchDealByText(corpus: string, deal: DealRow): {
+  score: number
+  reasons: string[]
+  exactTitleMatch: boolean
+} {
+  const titleText = normalizeText(deal.title)
+  const titleTokens = tokenize(deal.title)
+  const corpusTokens = new Set(tokenize(corpus))
+
+  let score = 0
+  const reasons: string[] = []
+  const exactTitleMatch = titleText.length >= 6 && corpus.includes(titleText)
+
+  if (exactTitleMatch) {
+    score += 0.38
+    reasons.push('subject_body_exact_deal_title_match')
+  } else if (titleTokens.length > 0) {
+    const overlap = titleTokens.filter((token) => corpusTokens.has(token)).length / titleTokens.length
+
+    if (overlap >= 0.75) {
+      score += 0.28
+      reasons.push('subject_body_strong_deal_keyword_match')
+    } else if (overlap >= 0.5) {
+      score += 0.18
+      reasons.push('subject_body_partial_deal_keyword_match')
+    }
+  }
+
+  return { score, reasons, exactTitleMatch }
+}
+
+function calculatePriorityScore(params: {
+  analyzed: AnalyzedThread
+  relationship: RelationshipAnalysisResult
+  participants: RelationshipParticipant[]
+  crmLinks: CrmLinkCandidate[]
+  linkedDeals: DealRow[]
+}): PriorityScoreResult {
+  const { analyzed, relationship, participants, crmLinks, linkedDeals } = params
+
+  const corpus = buildThreadCorpus(analyzed)
+  const latestMessage = analyzed.messages[analyzed.messages.length - 1] ?? null
+  const latestAgeHours = latestMessage ? hoursSince(latestMessage.sentAt) : 9999
+  const urgencyMatches = countKeywordMatches(corpus, intelligenceConfig.priorityUrgencyKeywords)
+  const deadlineMatches = countKeywordMatches(corpus, intelligenceConfig.priorityDeadlineKeywords)
+  const attachmentKeywordMatches = analyzed.messages.reduce((total, message) => {
+    const fileText = message.attachmentNames.join(' ')
+    return total + countKeywordMatches(fileText, intelligenceConfig.priorityAttachmentKeywords)
+  }, 0)
+
+  const maxSenderStrength = participants
+    .filter((participant) => participant.participant.role === 'sender')
+    .reduce((max, participant) => {
+      const strength = participant.gmailContact.message_count + participant.participant.messageCount
+      return Math.max(max, strength)
+    }, 0)
+
+  let score = 0
+
+  if (maxSenderStrength >= 25) score += 14
+  else if (maxSenderStrength >= 10) score += 10
+  else if (maxSenderStrength >= 4) score += 6
+  else if (maxSenderStrength >= 2) score += 3
+
+  if (crmLinks.some((link) => link.entityType === 'contact')) score += 12
+  if (crmLinks.some((link) => link.entityType === 'company')) score += 8
+
+  const maxDealValue = linkedDeals.reduce((max, deal) => Math.max(max, Number(deal.value ?? 0)), 0)
+  if (maxDealValue >= 100_000) score += 20
+  else if (maxDealValue >= 50_000) score += 16
+  else if (maxDealValue >= 10_000) score += 12
+  else if (maxDealValue >= 1_000) score += 8
+  else if (maxDealValue > 0) score += 4
+
+  score += Math.min(18, urgencyMatches * 6)
+  score += Math.min(12, deadlineMatches * 4)
+
+  if (relationship.responseStatus === 'waiting_for_me') score += 10
+  else if (relationship.responseStatus === 'waiting_for_customer') score += 4
+  else if (relationship.responseStatus === 'conversation_active') score += 2
+
+  if (relationship.followUpPriority === 'critical') score += 16
+  else if (relationship.followUpPriority === 'high') score += 12
+  else if (relationship.followUpPriority === 'medium') score += 8
+  else if (relationship.followUpPriority === 'low') score += 3
+
+  if (hasDirectQuestion(analyzed, corpus)) {
+    score += relationship.responseStatus === 'waiting_for_me' ? 8 : 4
+  }
+
+  const totalAttachments = analyzed.messages.reduce((total, message) => total + message.attachmentCount, 0)
+  if (totalAttachments > 0) score += 3
+  if (attachmentKeywordMatches > 0) score += Math.min(6, attachmentKeywordMatches * 2)
+
+  if (latestAgeHours <= 24) score += 10
+  else if (latestAgeHours <= 72) score += 7
+  else if (latestAgeHours <= 168) score += 4
+  else if (latestAgeHours <= 336) score += 1
+
+  const priorityScore = Math.round(clamp(score, 0, 100))
+
+  let priorityLabel: PriorityLabel = 'fyi'
+  if (priorityScore >= intelligenceConfig.priorityLabels.critical) {
+    priorityLabel = 'critical'
+  } else if (priorityScore >= intelligenceConfig.priorityLabels.high) {
+    priorityLabel = 'high'
+  } else if (priorityScore >= intelligenceConfig.priorityLabels.normal) {
+    priorityLabel = 'normal'
+  } else if (priorityScore >= intelligenceConfig.priorityLabels.low) {
+    priorityLabel = 'low'
+  }
+
+  return { priorityScore, priorityLabel }
+}
+
+function toCrmLinkInsert(
+  workspaceId: string,
+  gmailThreadId: string,
+  link: CrmLinkCandidate
+): InsertTables<'crm_email_links'> {
+  return {
+    workspace_id: workspaceId,
+    gmail_thread_id: gmailThreadId,
+    entity_type: link.entityType,
+    entity_id: link.entityId,
+    confidence_score: Number(clamp(link.confidenceScore, 0, 0.98).toFixed(2)),
+    match_reason: link.matchReasons.join('|'),
+  }
+}
+
 export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Database>) {
   const companiesRepo = createCompaniesRepository(db)
   const contactsRepo = createContactsRepository(db)
+  const dealsRepo = createDealsRepository(db)
   const gmailContactsRepo = createGmailContactsRepository(db)
   const threadsRepo = createGmailThreadsRepository(db)
+  const crmEmailLinksRepo = createCrmEmailLinksRepository(db)
   const learningService = createLearningService(db)
   const memoryService = createMemoryService(db)
 
@@ -254,7 +487,7 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
       previousThread: GmailThreadRow | null
       analyzed: AnalyzedThread
       participants: RelationshipParticipant[]
-    }): Promise<RelationshipAnalysisResult> {
+    }): Promise<ThreadRelationshipResult> {
       const {
         workspaceId,
         organizationId,
@@ -266,16 +499,47 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
       } = params
 
       const companyCache = new Map<string, CompanyRow | null>()
+      const contactCache = new Map<string, ContactRow | null>()
+      const linkedContactIds = new Set<string>()
+      const linkedCompanyIds = new Set<string>()
+      const crmLinkMap = new Map<string, CrmLinkCandidate>()
 
       for (const entry of participants) {
+        if (entry.crmContactId) {
+          linkedContactIds.add(entry.crmContactId)
+
+          mergeLinkCandidate(crmLinkMap, {
+            entityType: 'contact',
+            entityId: entry.crmContactId,
+            confidenceScore: 0.98,
+            matchReasons: ['participant_email_exact_match'],
+          })
+        }
+
         const normalizedDomain = normalizeBusinessDomain(entry.participant.contact.domain)
         const companyConfidenceScore = computeCompanyConfidence(entry.participant, normalizedDomain)
+
+        if (entry.crmContactId && !contactCache.has(entry.crmContactId)) {
+          contactCache.set(entry.crmContactId, await contactsRepo.findById(entry.crmContactId))
+        }
+
+        const crmContact = entry.crmContactId ? contactCache.get(entry.crmContactId) ?? null : null
+
+        if (crmContact?.company_id) {
+          linkedCompanyIds.add(crmContact.company_id)
+          mergeLinkCandidate(crmLinkMap, {
+            entityType: 'company',
+            entityId: crmContact.company_id,
+            confidenceScore: 0.76,
+            matchReasons: ['crm_contact_company_match'],
+          })
+        }
 
         if (!normalizedDomain || isPublicEmailProvider(normalizedDomain)) {
           await gmailContactsRepo.update(entry.gmailContact.id, {
             normalized_domain: normalizedDomain || entry.participant.contact.domain,
-            organization: null,
-            crm_company_id: null,
+            organization: crmContact?.company_id ? entry.gmailContact.organization : null,
+            crm_company_id: crmContact?.company_id ?? null,
             company_confidence_score: companyConfidenceScore,
           })
           continue
@@ -321,14 +585,13 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
               },
             }).catch(() => null)
           } else if (!company.domain || company.domain !== normalizedDomain) {
-            const updatedMetadata = {
-              ...getObject(company.metadata),
-              source: 'gmail_relationship_intelligence',
-              companyConfidenceScore,
-            }
             company = await companiesRepo.update(company.id, {
               domain: company.domain ?? normalizedDomain,
-              metadata: updatedMetadata,
+              metadata: {
+                ...getObject(company.metadata),
+                source: 'gmail_relationship_intelligence',
+                companyConfidenceScore,
+              },
             })
           }
 
@@ -337,6 +600,14 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
 
         if (!company) continue
 
+        linkedCompanyIds.add(company.id)
+        mergeLinkCandidate(crmLinkMap, {
+          entityType: 'company',
+          entityId: company.id,
+          confidenceScore: companyConfidenceScore,
+          matchReasons: ['participant_domain_exact_match'],
+        })
+
         await gmailContactsRepo.update(entry.gmailContact.id, {
           normalized_domain: normalizedDomain,
           organization: organizationName,
@@ -344,15 +615,72 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
           company_confidence_score: companyConfidenceScore,
         })
 
-        if (entry.crmContactId) {
-          const crmContact = await contactsRepo.findById(entry.crmContactId)
-          if (crmContact && !crmContact.company_id) {
-            await contactsRepo.update(crmContact.id, { company_id: company.id })
-          }
+        if (crmContact && !crmContact.company_id) {
+          await contactsRepo.update(crmContact.id, { company_id: company.id })
         }
       }
 
       const relationship = analyzeThreadRelationship(analyzed)
+      const corpus = buildThreadCorpus(analyzed)
+
+      const companyDeals = await dealsRepo.listByCompanyIds(workspaceId, [...linkedCompanyIds])
+      const contactDeals = await dealsRepo.listByContactIds(workspaceId, [...linkedContactIds])
+      const dealCandidates = new Map<string, DealRow>()
+
+      for (const deal of [...companyDeals, ...contactDeals]) {
+        dealCandidates.set(deal.id, deal)
+      }
+
+      const searchPool = dealCandidates.size > 0 ? [...dealCandidates.values()] : await dealsRepo.list(workspaceId)
+
+      for (const deal of searchPool) {
+        let score = 0
+        const reasons: string[] = []
+
+        if (deal.contact_id && linkedContactIds.has(deal.contact_id)) {
+          score += 0.45
+          reasons.push('participant_email_contact_match')
+        }
+
+        if (deal.company_id && linkedCompanyIds.has(deal.company_id)) {
+          score += 0.35
+          reasons.push('participant_domain_company_match')
+        }
+
+        const textMatch = matchDealByText(corpus, deal)
+        score += textMatch.score
+        reasons.push(...textMatch.reasons)
+
+        const qualifies =
+          score >= 0.55 ||
+          (textMatch.exactTitleMatch && score >= 0.35) ||
+          (Boolean(deal.contact_id && linkedContactIds.has(deal.contact_id)) &&
+            Boolean(deal.company_id && linkedCompanyIds.has(deal.company_id)))
+
+        if (!qualifies) continue
+
+        mergeLinkCandidate(crmLinkMap, {
+          entityType: 'deal',
+          entityId: deal.id,
+          confidenceScore: score,
+          matchReasons: reasons,
+        })
+        dealCandidates.set(deal.id, deal)
+      }
+
+      const crmLinks = [...crmLinkMap.values()].sort((a, b) => b.confidenceScore - a.confidenceScore)
+      const linkedDeals = crmLinks
+        .filter((link) => link.entityType === 'deal')
+        .map((link) => dealCandidates.get(link.entityId))
+        .filter((deal): deal is DealRow => Boolean(deal))
+
+      const priority = calculatePriorityScore({
+        analyzed,
+        relationship,
+        participants,
+        crmLinks,
+        linkedDeals,
+      })
 
       await threadsRepo.update(threadRow.id, {
         response_status: relationship.responseStatus,
@@ -362,7 +690,14 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
         follow_up_due: relationship.followUpDue,
         days_waiting: relationship.daysWaiting,
         follow_up_priority: relationship.followUpPriority,
+        priority_score: priority.priorityScore,
+        priority_label: priority.priorityLabel,
       })
+
+      await crmEmailLinksRepo.syncForThread(
+        threadRow.id,
+        crmLinks.map((link) => toCrmLinkInsert(workspaceId, threadRow.id, link))
+      )
 
       const existingSignals = await learningService.listSignals(workspaceId, {
         signalType: 'follow_up_delay',
@@ -395,6 +730,8 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
           daysWaiting: relationship.daysWaiting,
           followUpPriority: relationship.followUpPriority,
           threadHealth: relationship.threadHealth,
+          priorityScore: priority.priorityScore,
+          priorityLabel: priority.priorityLabel,
         }
 
         if (existingSignals[0]) {
@@ -418,7 +755,10 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
           })
         }
 
-        if (previousThread?.follow_up_priority !== 'critical' && relationship.followUpPriority === 'critical') {
+        if (
+          previousThread?.follow_up_priority !== 'critical' &&
+          relationship.followUpPriority === 'critical'
+        ) {
           await memoryService.createMemory({
             workspaceId,
             organizationId,
@@ -457,7 +797,12 @@ export function createGmailRelationshipIntelligenceService(db: SupabaseClient<Da
         ).catch(() => null)
       }
 
-      return relationship
+      return {
+        ...relationship,
+        priorityScore: priority.priorityScore,
+        priorityLabel: priority.priorityLabel,
+        crmLinks,
+      }
     },
   }
 }

@@ -7,6 +7,7 @@ import type { Database } from '@/types/database'
 import type {
   AnalyzedThread,
   GmailMessage,
+  GmailMessagePart,
   GmailThread,
   NormalizedMessage,
   ThreadStatus,
@@ -39,6 +40,44 @@ function getHeader(msg: GmailMessage, name: string): string {
   )
 }
 
+function extractAttachmentMetadata(part: GmailMessagePart | undefined): {
+  attachmentCount: number
+  attachmentNames: string[]
+} {
+  if (!part) {
+    return { attachmentCount: 0, attachmentNames: [] }
+  }
+
+  const names: string[] = []
+  let count = 0
+
+  const visit = (node: GmailMessagePart) => {
+    const hasAttachment =
+      Boolean(node.filename) ||
+      Boolean(node.body?.attachmentId) ||
+      node.mimeType.startsWith('application/') ||
+      node.mimeType.startsWith('image/')
+
+    if (hasAttachment) {
+      count += 1
+      if (node.filename) {
+        names.push(node.filename.toLowerCase())
+      }
+    }
+
+    for (const child of node.parts ?? []) {
+      visit(child)
+    }
+  }
+
+  visit(part)
+
+  return {
+    attachmentCount: count,
+    attachmentNames: [...new Set(names)],
+  }
+}
+
 function normalizeMessage(msg: GmailMessage, executiveEmail: string): NormalizedMessage {
   const fromRaw = getHeader(msg, 'From')
   const { email: fromEmail, name: fromName } = parseEmailAddress(fromRaw)
@@ -55,6 +94,7 @@ function normalizeMessage(msg: GmailMessage, executiveEmail: string): Normalized
 
   const subject = getHeader(msg, 'Subject') || null
   const bodyText = extractBodyText(msg.payload) ?? null
+  const { attachmentCount, attachmentNames } = extractAttachmentMetadata(msg.payload)
 
   // internalDate is epoch milliseconds as a string
   const sentAt = msg.internalDate
@@ -71,6 +111,8 @@ function normalizeMessage(msg: GmailMessage, executiveEmail: string): Normalized
     snippet: msg.snippet ?? null,
     bodyText,
     labelIds: msg.labelIds ?? [],
+    attachmentCount,
+    attachmentNames,
     sentAt,
     isOutbound: fromEmail === executiveEmail.toLowerCase(),
   }

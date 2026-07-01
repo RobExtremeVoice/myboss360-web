@@ -246,6 +246,10 @@ export type FollowUpPriority = 'low' | 'medium' | 'high' | 'critical'
 
 export type ThreadHealth = 'healthy' | 'watch' | 'stale' | 'critical' | 'closed'
 
+export type PriorityLabel = 'critical' | 'high' | 'normal' | 'low' | 'fyi'
+
+export type CrmEmailLinkEntityType = 'contact' | 'company' | 'deal'
+
 export interface NormalizedMessage {
   messageId: string
   fromEmail: string
@@ -256,6 +260,8 @@ export interface NormalizedMessage {
   snippet: string | null
   bodyText: string | null
   labelIds: string[]
+  attachmentCount: number
+  attachmentNames: string[]
   sentAt: Date
   isOutbound: boolean
 }
