@@ -1788,6 +1788,36 @@ export type Database = {
         }
         Relationships: []
       }
+      gmail_sync_state: {
+        Row: {
+          id: string
+          connection_id: string
+          history_id: string | null
+          last_sync_at: string | null
+          total_threads_synced: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          connection_id: string
+          history_id?: string | null
+          last_sync_at?: string | null
+          total_threads_synced?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          connection_id?: string
+          history_id?: string | null
+          last_sync_at?: string | null
+          total_threads_synced?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {

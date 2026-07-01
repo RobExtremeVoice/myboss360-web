@@ -15,15 +15,22 @@ export const googleConfig = {
   revokeUrl: 'https://oauth2.googleapis.com/revoke',
   userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
 
-  // Requested scopes — calendar read + identity
+  // Requested scopes — identity + calendar read + gmail read
+  // All scopes requested in a single OAuth flow so one connection covers both Calendar and Gmail.
   scopes: [
     'openid',
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/gmail.readonly',
   ],
 
   // Calendar API
   calendarApiBase: 'https://www.googleapis.com/calendar/v3',
+
+  // Gmail API
+  gmailApiBase: 'https://gmail.googleapis.com/gmail/v1',
+  gmailSyncLookBackDays: 90,
+  gmailMaxThreadsPerPage: 500,
 
   // Token encryption key — 64 hex chars = 32 bytes for AES-256-GCM
   tokenEncryptionKey: process.env.GOOGLE_TOKEN_ENCRYPTION_KEY ?? '',
@@ -39,4 +46,10 @@ export const googleConfig = {
 
 export function isGoogleConfigured(): boolean {
   return Boolean(googleConfig.clientId && googleConfig.clientSecret)
+}
+
+export const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
+
+export function connectionHasGmailScope(scopes: string[]): boolean {
+  return scopes.includes(GMAIL_SCOPE)
 }

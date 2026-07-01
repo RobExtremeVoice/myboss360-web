@@ -131,3 +131,99 @@ export interface FreeTimeBlock {
   endAt: string
   durationMinutes: number
 }
+
+// ─── Gmail API types ──────────────────────────────────────────────────────────
+
+export interface GmailProfile {
+  emailAddress: string
+  messagesTotal: number
+  threadsTotal: number
+  historyId: string
+}
+
+export interface GmailThreadRef {
+  id: string
+  threadId: string
+  snippet: string
+}
+
+export interface GmailThreadsListResponse {
+  threads?: GmailThreadRef[]
+  nextPageToken?: string
+  resultSizeEstimate: number
+}
+
+export interface GmailMessageHeader {
+  name: string
+  value: string
+}
+
+export interface GmailMessagePart {
+  partId?: string
+  mimeType: string
+  filename?: string
+  headers?: GmailMessageHeader[]
+  body?: {
+    attachmentId?: string
+    size: number
+    data?: string
+  }
+  parts?: GmailMessagePart[]
+}
+
+export interface GmailMessage {
+  id: string
+  threadId: string
+  labelIds?: string[]
+  snippet?: string
+  historyId?: string
+  internalDate?: string
+  payload?: GmailMessagePart
+  sizeEstimate?: number
+}
+
+export interface GmailThread {
+  id: string
+  historyId?: string
+  snippet?: string
+  messages?: GmailMessage[]
+}
+
+export interface GmailHistoryMessage {
+  id: string
+  threadId: string
+}
+
+export interface GmailHistoryItem {
+  id: string
+  messages?: GmailHistoryMessage[]
+  messagesAdded?: Array<{ message: GmailHistoryMessage }>
+  messagesDeleted?: Array<{ message: GmailHistoryMessage }>
+  labelsAdded?: Array<{ message: GmailHistoryMessage; labelIds: string[] }>
+  labelsRemoved?: Array<{ message: GmailHistoryMessage; labelIds: string[] }>
+}
+
+export interface GmailHistoryResponse {
+  history?: GmailHistoryItem[]
+  nextPageToken?: string
+  historyId: string
+}
+
+// ─── Gmail sync domain types ──────────────────────────────────────────────────
+
+export interface GmailSyncState {
+  id: string
+  connectionId: string
+  historyId: string | null
+  lastSyncAt: string | null
+  totalThreadsSynced: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface GmailSyncResult {
+  threadIds: string[]
+  historyId: string
+  synced: number
+  isInitial: boolean
+}
