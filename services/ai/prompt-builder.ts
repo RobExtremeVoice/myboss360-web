@@ -1,17 +1,12 @@
 import type { AITool } from '@/types/ai'
 import type { IntelligenceContext } from '@/types/intelligence'
 import { systemInstructions } from '@/config/ai'
+import { formatCompactCurrency as formatCurrency } from '@/utils/formatters'
 
 interface PromptBuilderInput {
   context: IntelligenceContext
   userFullName?: string | null
   tools?: AITool[]
-}
-
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`
-  return `$${Math.round(value)}`
 }
 
 // Builds the full system prompt for an LLM provider.

@@ -1,10 +1,12 @@
-import { PlaceholderPage } from "@/components/dashboard/PlaceholderPage";
-
 export default function ForgotPasswordPage() {
   return (
-    <PlaceholderPage
-      title="Forgot Password"
-      description="This route is prepared for future account recovery and password reset experiences. No authentication logic has been added yet."
-    />
-  );
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold text-gray-900">Forgot Password</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Password reset is coming soon. Contact your administrator to reset your password.
+        </p>
+      </div>
+    </div>
+  )
 }

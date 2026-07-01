@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 import type { LearningService } from '@/services/learning/learning-service'
 import type { DetectedPattern } from '@/types/learning'
+import { daysSince } from '@/lib/dates'
 
 // Sophisticated pattern detection — detects patterns from raw database queries
 // rather than just grouping existing signals. Complements the basic
@@ -18,10 +19,6 @@ export interface PatternDetectionResult {
     entityId?: string
     actionLabel?: string
   }>
-}
-
-function daysSince(isoDate: string): number {
-  return Math.floor((Date.now() - new Date(isoDate).getTime()) / 86_400_000)
 }
 
 export async function detectAdvancedPatterns(
@@ -69,7 +66,7 @@ export async function detectAdvancedPatterns(
   // Pattern 1: Pipeline stalling — deals not updated in 14+ days in mid-stage
   const stalledDeals = (recentDeals ?? []).filter((d) => {
     if (['closed_won', 'closed_lost'].includes(d.stage)) return false
-    return daysSince(d.updated_at) >= 14
+    return (daysSince(d.updated_at) ?? 0) >= 14
   })
   if (stalledDeals.length >= 2) {
     const confidence = Math.min(0.95, 0.6 + (stalledDeals.length - 2) * 0.05)
@@ -118,7 +115,7 @@ export async function detectAdvancedPatterns(
   }
 
   // Pattern 3: Follow-up gap — contacts added recently with no activity
-  const recentContactIds = new Set((allContacts ?? []).filter((c) => daysSince(c.created_at) <= 30).map((c) => c.id))
+  const recentContactIds = new Set((allContacts ?? []).filter((c) => (daysSince(c.created_at) ?? Infinity) <= 30).map((c) => c.id))
   const contactsWithActivity = new Set(
     (recentActivities ?? []).filter((a) => a.contact_id).map((a) => a.contact_id as string)
   )

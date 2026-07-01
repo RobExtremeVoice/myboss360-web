@@ -1,5 +1,6 @@
 import { BookOpen } from "lucide-react"
 import { SectionCard } from "@/components/dashboard/SectionCard"
+import { formatRelativeTime } from "@/utils/formatters"
 
 interface KnowledgeDocItem {
   id: string
@@ -15,14 +16,6 @@ const categoryStyles: Record<string, string> = {
   note: "border-amber-100 bg-amber-50 text-amber-600",
 }
 
-function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const hours = Math.floor(diff / 3_600_000)
-  if (hours < 1) return "just now"
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
-}
 
 type Props = {
   documents: KnowledgeDocItem[]
@@ -58,7 +51,7 @@ export function KnowledgeUpdatesWidget({ documents, totalCount }: Props) {
                       {doc.category}
                     </span>
                   ) : null}
-                  <span className="text-[10px] text-slate-400">{relativeTime(doc.updatedAt)}</span>
+                  <span className="text-[10px] text-slate-400">{formatRelativeTime(doc.updatedAt)}</span>
                 </div>
               </article>
             )

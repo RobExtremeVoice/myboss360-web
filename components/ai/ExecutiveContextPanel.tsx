@@ -1,6 +1,5 @@
-"use client"
-
 import { AlertCircle, BarChart2, CheckSquare, TrendingUp } from "lucide-react"
+import { formatCompactCurrency } from "@/utils/formatters"
 
 type Metrics = {
   totalPipelineValue: number
@@ -14,17 +13,11 @@ type Props = {
   metrics?: Metrics | null
 }
 
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`
-  return `$${Math.round(value)}`
-}
-
 const stats = [
   {
     label: "Pipeline",
     icon: BarChart2,
-    getValue: (m: Metrics) => formatCurrency(m.totalPipelineValue),
+    getValue: (m: Metrics) => formatCompactCurrency(m.totalPipelineValue),
     getDetail: (m: Metrics) => `${m.activeDeals} active deals`,
     color: "text-indigo-600",
   },

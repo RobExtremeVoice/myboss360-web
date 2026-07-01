@@ -4,6 +4,76 @@ All notable changes to MyBoss360 are documented here. The format follows [Keep a
 
 ---
 
+## [v1.2.1] — 2026-07-01
+
+**Theme: Architecture Freeze & Engineering Excellence**
+
+Stabilizes the platform before v1.3. No new product features — focus on testing foundation, security hardening, shared utilities, and documentation completeness.
+
+### Added
+
+- **Vitest test suite** (`vitest.config.ts`) — replaced non-functional `node:test` setup; native TypeScript + `@/` alias support; 98 tests across 12 test files.
+- **Date utilities** (`lib/dates.ts`) — single source of truth for `daysSince`, `daysUntil`, `daysSinceDate`, `clamp`; eliminates duplicated implementations across 4 services.
+- **Edge middleware** (`middleware.ts`) — proper Next.js middleware enforcing Supabase auth at the CDN edge for all `/dashboard/*` routes. Replaces dead `proxy.ts` (wrong export name, never loaded by Next.js).
+- **`.env.example`** — documents all 9 required environment variables with descriptions and generation hints.
+- **Developer README** — full setup guide, project structure, commands reference, architecture summary.
+- **Tests: date utilities** (`tests/lib/dates.test.ts`) — 18 tests covering all edge cases.
+- **Tests: people engine** (`tests/services/people/people-engine.test.ts`) — 25 tests for scoring functions.
+- **Tests: signal engine** (`tests/services/intelligence/signal-engine.test.ts`) — 15 tests covering deal/task/project signals.
+- **Tests: prompt builder, onboarding, provisioning, CRM** — all converted from `node:test` to vitest; fixtures updated for current `IntelligenceContext` shape.
+
+### Fixed
+
+- **Dead middleware** (`proxy.ts`) — deleted; replaced by `middleware.ts` with the correct export name recognized by Next.js.
+- **Duplicated utilities** — `daysSince` removed from `signal-engine`, `pattern-detector`, `people-engine`; `clamp` removed from `people-engine`, `gmail-relationship-intelligence`, `executive-summary-service`.
+- **`intelligence-service.ts` confused code path** — `listPatterns().then(() => fresh DB query)` pattern discarded the patterns result; replaced with direct `learning_signals` query.
+- **`IntelligenceContext` fixture** — prompt-builder tests were missing `learningSignals`, `emailIntelligence`, `peopleIntelligence` fields added in v1.2.0.
+- **People engine scoring functions** — `computeRelationshipStrength`, `computeEngagementScore`, `computeInfluenceScore`, `isDecisionMaker`, `isChampion` now exported for testability.
+
+### Security
+
+- **Edge auth guard** — dashboard routes now protected at the middleware layer (before server components run), not only at the page level.
+
+---
+
+## [v1.2.0] — 2026-07-01
+
+**Theme: Connected Executive — Google Workspace & People Intelligence**
+
+First external data integration milestone. Gmail and Google Calendar are live; the People Intelligence Engine adds relationship scoring, engagement tracking, and influence mapping across CRM and email data.
+
+### Added
+
+- **Google OAuth service** (`services/google/google-oauth-service.ts`) — per-workspace credential store with AES-256-GCM encryption; timing-safe CSRF nonce validation in OAuth callback.
+- **Google OAuth API** (`app/api/google/`) — connect/callback/status/disconnect endpoints.
+- **Gmail sync service** (`services/google/gmail-sync-service.ts`) — thread ingestion, incremental sync, retry logic.
+- **Gmail API client** (`services/google/gmail-api-client.ts`) — typed Gmail REST wrapper.
+- **Gmail thread intelligence** (`services/google/gmail-thread-intelligence.ts`) — thread summarization, action item extraction, priority classification.
+- **Gmail relationship intelligence** (`services/google/gmail-relationship-intelligence.ts`) — extracts relationship signals from email patterns.
+- **Gmail contact extractor** (`services/google/gmail-contact-extractor.ts`) — builds contact profiles from email metadata.
+- **Gmail knowledge ingestion** (`services/google/gmail-knowledge-ingestion.ts`) — bridges email content into the Knowledge Engine pipeline.
+- **Gmail API** (`app/api/gmail/`) — sync, status, and thread endpoints.
+- **Google Calendar API client** (`services/google/google-calendar-api.ts`) — typed Calendar REST wrapper.
+- **Calendar API** (`app/api/calendar/`) — events and sync endpoints.
+- **People Engine** (`services/people/people-engine.ts`) — relationship strength scoring, engagement scoring, influence scoring; `isDecisionMaker` / `isChampion` classifiers.
+- **People Service** (`services/people/people-service.ts`) — top relationships, stale relationships, champions, decision makers, awaiting-reply and needs-follow-up buckets.
+- **People API** (`app/api/people/`) — relationship intelligence endpoints.
+- **Intelligence Service** (`services/intelligence/intelligence-service.ts`) — unified context assembly: metrics + risks + opportunities + signals + patterns + email + people.
+- **Signal Engine** (`services/intelligence/signal-engine.ts`) — deal/task/project signal emission with severity classification.
+- **Pattern Detector** (`services/intelligence/pattern-detector.ts`) — stale deal detection, engagement drop detection, new relationship detection.
+- **Recommendation Engine** (`services/intelligence/recommendation-engine.ts`) — action recommendations from signals and patterns.
+- **Executive Summary Service** (`services/dashboard/executive-summary-service.ts`) — aggregates all intelligence into a briefing-ready summary.
+- **People Intelligence docs** (`docs/people-intelligence.md`) — architecture, scoring model, data sources.
+- **Executive AI polish** (`components/ai/`) — time-aware greeting, typing indicator, streaming states, `memo()` on conversation sidebar, lazy-loaded prompt preview panel, ARIA roles.
+- **Product polish docs** (`docs/product-polish.md`) — Sprint 20.8 implementation record.
+
+### Fixed
+
+- **`AIStatusBadge` provider name** — default changed from "Mock Provider" to "Executive AI".
+- **Dashboard empty state** — message updated from internal developer language to user-facing copy.
+
+---
+
 ## [v1.1.0] — 2026-07-01
 
 **Theme: Knowledge Engine — RAG Foundation**

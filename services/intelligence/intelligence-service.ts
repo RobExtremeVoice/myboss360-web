@@ -81,19 +81,14 @@ export function createIntelligenceService(db: SupabaseClient<Database>) {
             status: 'pending',
             limit: intelligenceConfig.maxTopOpportunities * 2,
           }),
-          learningService
-            .listPatterns(workspace.id)
-            .then(() =>
-              // listPatterns returns patterns; signals come via learning service too
-              db
-                .from('learning_signals')
-                .select('*')
-                .eq('workspace_id', workspace.id)
-                .is('resolved_at', null)
-                .order('detected_at', { ascending: false })
-                .limit(intelligenceConfig.maxRecentSignals)
-                .then(({ data }) => data ?? [])
-            ),
+          db
+            .from('learning_signals')
+            .select('*')
+            .eq('workspace_id', workspace.id)
+            .is('resolved_at', null)
+            .order('detected_at', { ascending: false })
+            .limit(intelligenceConfig.maxRecentSignals)
+            .then(({ data }) => data ?? []),
           db
             .from('gmail_threads')
             .select('*')

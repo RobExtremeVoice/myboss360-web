@@ -21,6 +21,7 @@ import {
   formatRelativeTime,
   formatTitleCase,
 } from "@/utils/formatters";
+import { clamp } from "@/lib/dates";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type WorkspaceRow = Database["public"]["Tables"]["workspaces"]["Row"];
@@ -60,10 +61,6 @@ function addDays(date: Date, days: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
 }
 
 function sum(values: Array<number | null | undefined>): number {

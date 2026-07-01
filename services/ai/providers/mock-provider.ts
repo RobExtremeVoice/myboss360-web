@@ -1,11 +1,6 @@
 import type { AICapability, AIProvider, AIProviderStatus, GenerateRequest, GenerateResponse, StreamChunk } from '@/types/ai'
 import type { IntelligenceContext } from '@/types/intelligence'
-
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`
-  return `$${Math.round(value).toLocaleString()}`
-}
+import { formatCompactCurrency as formatCurrency } from '@/utils/formatters'
 
 function buildMockResponse(userMessage: string, context?: IntelligenceContext): string {
   const msg = userMessage.toLowerCase()

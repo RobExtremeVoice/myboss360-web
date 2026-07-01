@@ -22,16 +22,6 @@ abstract class UnimplementedProvider implements AIProvider {
   }
 }
 
-export class FutureOpenAIProvider extends UnimplementedProvider {
-  readonly id = 'openai'
-  readonly name = 'OpenAI'
-  readonly modelId = 'gpt-4o'
-  readonly capabilities: AICapability[] = ['text', 'tool_use', 'vision', 'code']
-  readonly maxContextTokens = 128_000
-  readonly supportsStreaming = true
-  // Wire: OPENAI_API_KEY env var + openai npm package (not installed yet)
-}
-
 export class FutureAnthropicProvider extends UnimplementedProvider {
   readonly id = 'anthropic'
   readonly name = 'Anthropic'

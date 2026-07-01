@@ -3,18 +3,11 @@ import type { Database } from '@/types/database'
 import type { LearningService } from '@/services/learning/learning-service'
 import { intelligenceConfig, signalTitles } from '@/config/intelligence'
 import { createIntelligenceRepository } from '@/repositories/intelligence'
+import { daysSince, daysUntil } from '@/lib/dates'
 
 type DealRow = Database['public']['Tables']['deals']['Row']
 type TaskRow = Database['public']['Tables']['tasks']['Row']
 type ProjectRow = Database['public']['Tables']['projects']['Row']
-
-function daysSince(isoDate: string): number {
-  return Math.floor((Date.now() - new Date(isoDate).getTime()) / 86_400_000)
-}
-
-function daysUntil(isoDate: string): number {
-  return Math.floor((new Date(isoDate).getTime() - Date.now()) / 86_400_000)
-}
 
 // Evaluate a single deal and emit signals if warranted.
 // Returns true if a signal was emitted.
@@ -72,7 +65,8 @@ export async function emitTaskSignals(
   if (!intelligenceConfig.activeTaskStatuses.includes(task.status)) return false
   if (!task.due_date) return false
 
-  const daysOverdue = daysSince(task.due_date)
+  // task.due_date is non-null here (guarded above); daysSince returns null only for null inputs
+  const daysOverdue = daysSince(task.due_date) ?? 0
   if (daysOverdue < intelligenceConfig.taskOverdueThresholdDays) return false
 
   await learningService.createLearningSignal({

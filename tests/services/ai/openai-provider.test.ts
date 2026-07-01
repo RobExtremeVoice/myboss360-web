@@ -1,75 +1,62 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from 'vitest'
+import { OpenAIProvider } from '../../../services/ai/providers/openai-provider'
 
-import { OpenAIProvider } from "../../../services/ai/providers/openai-provider.ts";
-
-// ── Helper ───────────────────────────────────────────────────────────
 function withEnv(key: string, value: string | undefined, fn: () => void) {
-  const original = process.env[key];
+  const original = process.env[key]
   if (value === undefined) {
-    delete process.env[key];
+    delete process.env[key]
   } else {
-    process.env[key] = value;
+    process.env[key] = value
   }
   try {
-    fn();
+    fn()
   } finally {
     if (original === undefined) {
-      delete process.env[key];
+      delete process.env[key]
     } else {
-      process.env[key] = original;
+      process.env[key] = original
     }
   }
 }
 
-// ── Tests ────────────────────────────────────────────────────────────
-test("OpenAIProvider has correct static properties", () => {
-  withEnv("OPENAI_API_KEY", undefined, () => {
-    const provider = new OpenAIProvider();
-    assert.equal(provider.id, "openai");
-    assert.equal(provider.name, "OpenAI");
-    assert.ok(provider.maxContextTokens >= 128_000);
-    assert.ok(provider.capabilities.includes("text"));
-  });
-});
+describe('OpenAIProvider', () => {
+  it('has correct static properties', () => {
+    withEnv('OPENAI_API_KEY', undefined, () => {
+      const provider = new OpenAIProvider()
+      expect(provider.id).toBe('openai')
+      expect(provider.name).toBe('OpenAI')
+      expect(provider.maxContextTokens).toBeGreaterThanOrEqual(128_000)
+      expect(provider.capabilities).toContain('text')
+    })
+  })
 
-test("status is 'unconfigured' when OPENAI_API_KEY is absent", () => {
-  withEnv("OPENAI_API_KEY", undefined, () => {
-    const provider = new OpenAIProvider();
-    assert.equal(provider.status, "unconfigured");
-  });
-});
+  it('status is unconfigured when OPENAI_API_KEY is absent', () => {
+    withEnv('OPENAI_API_KEY', undefined, () => {
+      const provider = new OpenAIProvider()
+      expect(provider.status).toBe('unconfigured')
+    })
+  })
 
-test("status is 'active' when OPENAI_API_KEY is present", () => {
-  withEnv("OPENAI_API_KEY", "sk-test-fake-key", () => {
-    const provider = new OpenAIProvider();
-    assert.equal(provider.status, "active");
-  });
-});
+  it('status is active when OPENAI_API_KEY is present', () => {
+    withEnv('OPENAI_API_KEY', 'sk-test-fake-key', () => {
+      const provider = new OpenAIProvider()
+      expect(provider.status).toBe('active')
+    })
+  })
 
-test("generate() rejects with a clear message when API key is missing", async () => {
-  withEnv("OPENAI_API_KEY", undefined, () => {
-    const provider = new OpenAIProvider();
-    // generate() must throw — wrap in a promise catch inside the sync withEnv block
-    const promise = provider.generate({
-      systemPrompt: "test",
-      messages: [{ role: "user", content: "hello" }],
-    });
+  it('generate() rejects with a clear message when API key is missing', async () => {
+    let promise!: Promise<unknown>
+    withEnv('OPENAI_API_KEY', undefined, () => {
+      const provider = new OpenAIProvider()
+      promise = provider.generate({ systemPrompt: 'test', messages: [{ role: 'user', content: 'hello' }] })
+    })
+    await expect(promise).rejects.toThrow(/OPENAI_API_KEY/i)
+  })
 
-    // Store the rejected promise for assertion outside the sync scope
-    (globalThis as Record<string, unknown>).__testPromise = promise;
-  });
-
-  await assert.rejects(
-    (globalThis as Record<string, unknown>).__testPromise as Promise<unknown>,
-    /OPENAI_API_KEY/i
-  );
-  delete (globalThis as Record<string, unknown>).__testPromise;
-});
-
-test("modelId matches the config default (gpt-4o-mini)", () => {
-  withEnv("OPENAI_API_KEY", undefined, () => {
-    const provider = new OpenAIProvider();
-    assert.equal(provider.modelId, "gpt-4o-mini");
-  });
-});
+  it('modelId matches the config default (gpt-4o-mini)', () => {
+    withEnv('OPENAI_API_KEY', undefined, () => {
+      const provider = new OpenAIProvider()
+      expect(provider.modelId).toBe('gpt-4o-mini')
+    })
+  })
+})

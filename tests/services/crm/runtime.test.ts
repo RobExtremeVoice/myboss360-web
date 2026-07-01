@@ -1,21 +1,28 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from 'vitest'
+import { shouldUseDevelopmentCrmFallback } from '../../../services/crm/runtime'
 
-import { shouldUseDevelopmentCrmFallback } from "../../../services/crm/runtime.ts";
+describe('shouldUseDevelopmentCrmFallback', () => {
+  it('enables fallback for empty workspace in development', () => {
+    expect(
+      shouldUseDevelopmentCrmFallback({ hasLiveRecords: false, nodeEnv: 'development' })
+    ).toBe(true)
+  })
 
-test("enables CRM fallback only for empty non-production workspaces", () => {
-  assert.equal(
-    shouldUseDevelopmentCrmFallback({ hasLiveRecords: false, nodeEnv: "development" }),
-    true
-  );
+  it('disables fallback in production regardless of records', () => {
+    expect(
+      shouldUseDevelopmentCrmFallback({ hasLiveRecords: false, nodeEnv: 'production' })
+    ).toBe(false)
+  })
 
-  assert.equal(
-    shouldUseDevelopmentCrmFallback({ hasLiveRecords: false, nodeEnv: "production" }),
-    false
-  );
+  it('disables fallback when live records exist', () => {
+    expect(
+      shouldUseDevelopmentCrmFallback({ hasLiveRecords: true, nodeEnv: 'development' })
+    ).toBe(false)
+  })
 
-  assert.equal(
-    shouldUseDevelopmentCrmFallback({ hasLiveRecords: true, nodeEnv: "development" }),
-    false
-  );
-});
+  it('disables fallback when live records exist in production', () => {
+    expect(
+      shouldUseDevelopmentCrmFallback({ hasLiveRecords: true, nodeEnv: 'production' })
+    ).toBe(false)
+  })
+})

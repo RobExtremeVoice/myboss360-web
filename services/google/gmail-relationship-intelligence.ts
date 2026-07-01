@@ -12,6 +12,7 @@ import type {
 } from '@/types/google'
 import type { PatternDetectionResult } from '@/services/intelligence/pattern-detector'
 import { intelligenceConfig } from '@/config/intelligence'
+import { clamp, daysSinceDate } from '@/lib/dates'
 import { createCompaniesRepository } from '@/repositories/crm/companies'
 import { createContactsRepository } from '@/repositories/crm/contacts'
 import { createDealsRepository } from '@/repositories/crm/deals'
@@ -106,10 +107,6 @@ interface NewRelationshipEvent {
   confidence: number
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value))
-}
-
 function getObject(value: unknown): Record<string, unknown> {
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
     return value as Record<string, unknown>
@@ -126,7 +123,7 @@ function toStartCase(value: string): string {
 }
 
 function daysSince(date: Date): number {
-  return Math.max(0, Math.floor((Date.now() - date.getTime()) / 86_400_000))
+  return Math.max(0, Math.floor(daysSinceDate(date)))
 }
 
 function hoursSince(date: Date): number {

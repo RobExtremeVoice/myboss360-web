@@ -921,6 +921,10 @@ export function createCRMService(db: SupabaseClient<Database>) {
       if (!existing) {
         throw new Error("Company not found or not accessible.");
       }
+      const ownerWorkspace = await resolveWorkspace(userId, existing.workspace_id);
+      if (!ownerWorkspace || ownerWorkspace.id !== existing.workspace_id) {
+        throw new Error("Company not found or not accessible.");
+      }
 
       const updated = await companiesRepo.update(id, input);
       await recordCrmAuditEvent({
@@ -936,6 +940,10 @@ export function createCRMService(db: SupabaseClient<Database>) {
     async deleteCompany(userId: string, id: string) {
       const existing = await companiesRepo.findById(id);
       if (!existing) {
+        throw new Error("Company not found or not accessible.");
+      }
+      const ownerWorkspace = await resolveWorkspace(userId, existing.workspace_id);
+      if (!ownerWorkspace || ownerWorkspace.id !== existing.workspace_id) {
         throw new Error("Company not found or not accessible.");
       }
 
@@ -1007,6 +1015,10 @@ export function createCRMService(db: SupabaseClient<Database>) {
       if (!existing) {
         throw new Error("Contact not found or not accessible.");
       }
+      const ownerWorkspace = await resolveWorkspace(userId, existing.workspace_id);
+      if (!ownerWorkspace || ownerWorkspace.id !== existing.workspace_id) {
+        throw new Error("Contact not found or not accessible.");
+      }
 
       const updated = await contactsRepo.update(id, input);
       await recordCrmAuditEvent({
@@ -1022,6 +1034,10 @@ export function createCRMService(db: SupabaseClient<Database>) {
     async deleteContact(userId: string, id: string) {
       const existing = await contactsRepo.findById(id);
       if (!existing) {
+        throw new Error("Contact not found or not accessible.");
+      }
+      const ownerWorkspace = await resolveWorkspace(userId, existing.workspace_id);
+      if (!ownerWorkspace || ownerWorkspace.id !== existing.workspace_id) {
         throw new Error("Contact not found or not accessible.");
       }
 
@@ -1107,6 +1123,10 @@ export function createCRMService(db: SupabaseClient<Database>) {
       if (!existing) {
         throw new Error("Deal not found or not accessible.");
       }
+      const ownerWorkspace = await resolveWorkspace(userId, existing.workspace_id);
+      if (!ownerWorkspace || ownerWorkspace.id !== existing.workspace_id) {
+        throw new Error("Deal not found or not accessible.");
+      }
 
       const updated = await dealsRepo.update(id, input);
       await recordCrmAuditEvent({
@@ -1140,6 +1160,10 @@ export function createCRMService(db: SupabaseClient<Database>) {
     async deleteDeal(userId: string, id: string) {
       const existing = await dealsRepo.findById(id);
       if (!existing) {
+        throw new Error("Deal not found or not accessible.");
+      }
+      const ownerWorkspace = await resolveWorkspace(userId, existing.workspace_id);
+      if (!ownerWorkspace || ownerWorkspace.id !== existing.workspace_id) {
         throw new Error("Deal not found or not accessible.");
       }
 

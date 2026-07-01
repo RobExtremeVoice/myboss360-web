@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 import type { PersonMergeInput, PersonProfile, PeopleSource } from '@/types/people'
 import { peopleConfig } from '@/config/people'
+import { clamp, daysSince } from '@/lib/dates'
 
 type ContactRow = Database['public']['Tables']['contacts']['Row']
 type GmailContactRow = Database['public']['Tables']['gmail_contacts']['Row']
@@ -12,16 +13,7 @@ type GmailThreadRow = Database['public']['Tables']['gmail_threads']['Row']
 const STALE_MS = peopleConfig.staleRelationshipDays * 24 * 60 * 60 * 1000
 const NEW_MS = peopleConfig.newRelationshipDays * 24 * 60 * 60 * 1000
 
-function clamp(value: number, min = 0, max = 100): number {
-  return Math.min(max, Math.max(min, Math.round(value)))
-}
-
-function daysSince(isoDate: string | null): number | null {
-  if (!isoDate) return null
-  return (Date.now() - new Date(isoDate).getTime()) / (24 * 60 * 60 * 1000)
-}
-
-function computeRelationshipStrength(input: PersonMergeInput): number {
+export function computeRelationshipStrength(input: PersonMergeInput): number {
   const days = daysSince(input.lastInteractionAt)
   const recency = days === null ? 0 : days < 7 ? 25 : days < 30 ? 15 : days < 90 ? 5 : 0
   const reciprocity = input.inboundEmailCount > 0 && input.outboundEmailCount > 0 ? 20 : 0
@@ -31,7 +23,7 @@ function computeRelationshipStrength(input: PersonMergeInput): number {
   return clamp(recency + reciprocity + frequency + meetings + deal)
 }
 
-function computeEngagementScore(input: PersonMergeInput): number {
+export function computeEngagementScore(input: PersonMergeInput): number {
   const emailFreq = Math.min(input.emailCount * 5, 50)
   const meetingFreq = Math.min(input.meetingCount * 10, 30)
   const days = daysSince(input.lastInteractionAt)
@@ -39,7 +31,7 @@ function computeEngagementScore(input: PersonMergeInput): number {
   return clamp(emailFreq + meetingFreq + recencyBonus)
 }
 
-function computeInfluenceScore(input: PersonMergeInput): number {
+export function computeInfluenceScore(input: PersonMergeInput): number {
   const title = (input.jobTitle ?? '').toLowerCase()
   let score = 20
 
@@ -60,13 +52,13 @@ function computeInfluenceScore(input: PersonMergeInput): number {
   return clamp(score)
 }
 
-function isDecisionMaker(jobTitle: string | null): boolean {
+export function isDecisionMaker(jobTitle: string | null): boolean {
   if (!jobTitle) return false
   const lower = jobTitle.toLowerCase()
   return peopleConfig.decisionMakerTitleKeywords.some((kw) => lower.includes(kw))
 }
 
-function isChampion(
+export function isChampion(
   relationshipStrength: number,
   engagementScore: number,
   lastInteractionAt: string | null

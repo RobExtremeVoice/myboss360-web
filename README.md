@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyBoss360
 
-## Getting Started
+An AI-powered Executive Operating System. Aggregates email, calendar, CRM, and business intelligence into a single intelligent workspace for executives.
 
-First, run the development server:
+**Current release:** v1.2.1 (Architecture Freeze) · [Changelog](docs/roadmap/CHANGELOG.md) · [Release Board](docs/roadmap/RELEASE_BOARD.md)
+
+---
+
+## Developer Setup
+
+### Prerequisites
+
+- Node.js 22+
+- A Supabase project (free tier works)
+- OpenAI API key (for AI assistant)
+- Google OAuth credentials (for Gmail/Calendar integrations)
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.example .env.local
+# Edit .env.local with your credentials
+```
+
+See [`.env.example`](.env.example) for all required variables with descriptions.
+
+### 3. Set up the database
+
+Run migrations against your Supabase project:
+
+```bash
+# From the Supabase dashboard: SQL Editor → paste each migration file in order
+# Or with the Supabase CLI:
+supabase db push
+```
+
+Seed demo data (optional):
+
+```bash
+# Paste supabase/seed.sql in the SQL Editor
+```
+
+### 4. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Type-check and build for production |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run test suite (vitest) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
+| `npm start` | Start production server (after build) |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/                    Next.js App Router (pages, layouts, API routes)
+  (auth)/               Login / register pages
+  (dashboard)/          Executive dashboard and sub-pages
+  (marketing)/          Public marketing homepage
+  (onboarding)/         Onboarding wizard
+  api/                  REST API routes (ai, calendar, gmail, google, intelligence, knowledge, onboarding, people)
 
-## Deploy on Vercel
+components/             React components
+  ai/                   AI chat, conversation sidebar, composer
+  crm/                  CRM entity views
+  dashboard/            Shell, sidebar, KPI cards, charts
+  onboarding/           Wizard steps
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+config/                 Application configuration (CRM, knowledge, dashboard)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+docs/                   Documentation
+  architecture/         System, database, and AI architecture docs
+  roadmap/              CHANGELOG, RELEASE_BOARD, FEATURE_MATRIX
+
+lib/                    Shared utilities and infrastructure
+  dates.ts              Date utilities (daysSince, daysUntil, clamp)
+  supabase/             Supabase browser, server, and admin clients
+
+repositories/           Typed database access layer
+  crm/                  Companies, contacts, deals, activities
+  knowledge/            Documents, chunks, collections, tags
+  onboarding/           Onboarding state
+
+services/               Business logic layer
+  ai/                   Provider abstraction, OpenAI provider, prompt builder, registry
+  crm/                  CRM service (companies, contacts, deals)
+  dashboard/            Executive summary service
+  google/               Gmail sync, OAuth, relationship intelligence, calendar API
+  intelligence/         Signal engine, pattern detector, recommendation engine
+  knowledge/            Document pipeline, search, knowledge service
+  onboarding/           Onboarding service, workspace provisioning
+  people/               People engine, people service
+
+types/                  TypeScript type definitions
+  ai.ts, crm.ts, intelligence.ts, knowledge.ts, learning.ts, onboarding.ts, ...
+
+tests/                  Unit and integration tests (vitest)
+  lib/, repositories/, services/
+```
+
+---
+
+## Architecture
+
+See [docs/architecture/](docs/architecture/) for:
+- [System Architecture](docs/architecture/system-architecture.md)
+- [Database ERD](docs/architecture/database-erd.md)
+- [AI Architecture](docs/architecture/ai-architecture.md)
+- [Intelligence Architecture](docs/intelligence-architecture.md)
+- [People Intelligence](docs/people-intelligence.md)
+
+---
+
+## Key Design Decisions
+
+- **Next.js App Router** — all dashboard pages are React Server Components by default; `"use client"` is added only where interactivity requires it
+- **Supabase RLS** — every table has Row-Level Security enforced via `is_org_member()` / `is_workspace_member()` functions; service-role client used only for provisioning
+- **Repository pattern** — all DB access goes through typed repositories; services never call `supabase.from()` directly
+- **Edge middleware** — `middleware.ts` enforces auth at the CDN edge for all `/dashboard/*` routes before any server component runs
+- **Pluggable AI providers** — `services/ai/provider-registry.ts` allows swapping between OpenAI, Anthropic, or other providers without changing the chat layer

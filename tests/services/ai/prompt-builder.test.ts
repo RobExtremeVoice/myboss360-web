@@ -1,14 +1,11 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from 'vitest'
+import { buildSystemPrompt } from '../../../services/ai/prompt-builder'
+import type { IntelligenceContext } from '../../../types/intelligence'
 
-import { buildSystemPrompt } from "../../../services/ai/prompt-builder.ts";
-import type { IntelligenceContext } from "../../../types/intelligence.ts";
-
-// ── Minimal IntelligenceContext fixture ──────────────────────────────
 function makeContext(overrides: Partial<IntelligenceContext> = {}): IntelligenceContext {
   const base: IntelligenceContext = {
-    workspaceId: "ws-test-001",
-    organizationId: "org-test-001",
+    workspaceId: 'ws-test-001',
+    organizationId: 'org-test-001',
     executiveMetrics: {
       totalPipelineValue: 250_000,
       activeDeals: 12,
@@ -22,12 +19,12 @@ function makeContext(overrides: Partial<IntelligenceContext> = {}): Intelligence
     },
     topRisks: [
       {
-        id: "r1",
-        level: "high",
-        title: "Q3 deal stalled",
-        description: "Enterprise deal has no activity in 14 days.",
-        relatedEntityId: "deal-1",
-        relatedEntityType: "deal",
+        id: 'r1',
+        level: 'high',
+        title: 'Q3 deal stalled',
+        description: 'Enterprise deal has no activity in 14 days.',
+        relatedEntityId: 'deal-1',
+        relatedEntityType: 'deal',
         createdAt: new Date().toISOString(),
       },
     ],
@@ -37,50 +34,67 @@ function makeContext(overrides: Partial<IntelligenceContext> = {}): Intelligence
     todayAgenda: [],
     importantTasks: [],
     recentSignals: [],
+    learningSignals: [],
+    emailIntelligence: {
+      criticalThreads: [],
+      highPriorityThreads: [],
+      awaitingReplies: [],
+      overdueFollowUps: [],
+      dealRelatedThreads: [],
+      topSenders: [],
+      newRelationships: [],
+    },
+    peopleIntelligence: {
+      topRelationships: [],
+      staleRelationships: [],
+      newRelationships: [],
+      champions: [],
+      decisionMakers: [],
+      awaitingReply: [],
+      needingFollowUp: [],
+    },
     generatedAt: new Date().toISOString(),
-  };
-  return { ...base, ...overrides };
+  }
+  return { ...base, ...overrides }
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────
-test("buildSystemPrompt returns a non-empty string", () => {
-  const prompt = buildSystemPrompt({ context: makeContext() });
-  assert.ok(typeof prompt === "string");
-  assert.ok(prompt.length > 100);
-});
+describe('buildSystemPrompt', () => {
+  it('returns a non-empty string', () => {
+    const prompt = buildSystemPrompt({ context: makeContext() })
+    expect(typeof prompt).toBe('string')
+    expect(prompt.length).toBeGreaterThan(100)
+  })
 
-test("prompt contains core identity instructions", () => {
-  const prompt = buildSystemPrompt({ context: makeContext() });
-  assert.ok(prompt.includes("MyBoss360 Executive AI"));
-});
+  it('contains core identity instructions', () => {
+    const prompt = buildSystemPrompt({ context: makeContext() })
+    expect(prompt).toContain('MyBoss360 Executive AI')
+  })
 
-test("prompt contains executive metrics", () => {
-  const prompt = buildSystemPrompt({ context: makeContext() });
-  assert.ok(prompt.includes("250"));  // totalPipelineValue = $250K
-  assert.ok(prompt.includes("12"));   // activeDeals
-  assert.ok(prompt.includes("5"));    // overdueTasksCount
-});
+  it('contains executive metrics', () => {
+    const prompt = buildSystemPrompt({ context: makeContext() })
+    expect(prompt).toContain('250') // totalPipelineValue = $250K
+    expect(prompt).toContain('12')  // activeDeals
+    expect(prompt).toContain('5')   // overdueTasksCount
+  })
 
-test("prompt includes top risk title when risks are present", () => {
-  const ctx = makeContext();
-  const prompt = buildSystemPrompt({ context: ctx });
-  assert.ok(prompt.includes("Q3 deal stalled"));
-});
+  it('includes top risk title when risks are present', () => {
+    const prompt = buildSystemPrompt({ context: makeContext() })
+    expect(prompt).toContain('Q3 deal stalled')
+  })
 
-test("prompt includes user name when provided", () => {
-  const ctx = makeContext();
-  const prompt = buildSystemPrompt({ context: ctx, userFullName: "Jane Smith" });
-  assert.ok(prompt.includes("Jane Smith"));
-});
+  it('includes user name when provided', () => {
+    const prompt = buildSystemPrompt({ context: makeContext(), userFullName: 'Jane Smith' })
+    expect(prompt).toContain('Jane Smith')
+  })
 
-test("prompt omits risk section when no risks", () => {
-  const ctx = makeContext({ topRisks: [] });
-  const prompt = buildSystemPrompt({ context: ctx });
-  assert.ok(!prompt.includes("TOP RISKS"));
-});
+  it('omits risk section when no risks', () => {
+    const prompt = buildSystemPrompt({ context: makeContext({ topRisks: [] }) })
+    expect(prompt).not.toContain('TOP RISKS')
+  })
 
-test("prompt includes closing instructions", () => {
-  const prompt = buildSystemPrompt({ context: makeContext() });
-  assert.ok(prompt.includes("INSTRUCTIONS"));
-  assert.ok(prompt.includes("direct and concise"));
-});
+  it('includes closing instructions', () => {
+    const prompt = buildSystemPrompt({ context: makeContext() })
+    expect(prompt).toContain('INSTRUCTIONS')
+    expect(prompt).toContain('direct and concise')
+  })
+})

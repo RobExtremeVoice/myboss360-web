@@ -1,10 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Edge proxy: validates the Supabase session on every request to /dashboard/*.
+// Refreshes auth tokens when needed so cookies stay in sync across both the
+// outgoing request and the response the browser receives.
 export async function proxy(request: NextRequest) {
-  // supabaseResponse is reassigned inside setAll when tokens refresh,
-  // so the updated cookies propagate to both the forwarded request and
-  // the response the browser receives.
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!user) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/login'
     return NextResponse.redirect(redirectUrl)
