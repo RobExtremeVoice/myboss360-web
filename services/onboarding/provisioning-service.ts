@@ -37,120 +37,138 @@ export function createProvisioningService(db: SupabaseClient<Database>) {
 
   return {
     async provisionWorkspace(input: ProvisionInput): Promise<ProvisionResult> {
-      // 1. Create organization
-      const org = await orgsRepo.create({
-        name: 'My Organization',
-        slug: deriveOrgSlug(input.userEmail),
-        plan: 'free',
-      })
+      // Track org ID so we can attempt cleanup if a later step fails
+      let orgId: string | null = null
 
-      // 2. Create workspace
-      const workspace = await workspacesRepo.create({
-        organization_id: org.id,
-        name: 'Executive',
-        slug: 'executive',
-        description: 'Executive workspace',
-      })
+      try {
+        // 1. Create organization
+        const org = await orgsRepo.create({
+          name: 'My Organization',
+          slug: deriveOrgSlug(input.userEmail),
+          plan: 'free',
+        })
+        orgId = org.id
 
-      // 3. Org-level membership (workspace_id = null → access to all workspaces in org)
-      await membershipsRepo.create({
-        user_id: input.userId,
-        organization_id: org.id,
-        workspace_id: null,
-        status: 'active',
-        joined_at: new Date().toISOString(),
-      })
+        // 2. Create workspace
+        const workspace = await workspacesRepo.create({
+          organization_id: org.id,
+          name: 'Executive',
+          slug: 'executive',
+          description: 'Executive workspace',
+        })
 
-      // 4. Workspace-level membership (needed for listForUser inner join)
-      await membershipsRepo.create({
-        user_id: input.userId,
-        organization_id: org.id,
-        workspace_id: workspace.id,
-        status: 'active',
-        joined_at: new Date().toISOString(),
-      })
+        // 3. Org-level membership (workspace_id = null → access to all workspaces in org)
+        await membershipsRepo.create({
+          user_id: input.userId,
+          organization_id: org.id,
+          workspace_id: null,
+          status: 'active',
+          joined_at: new Date().toISOString(),
+        })
 
-      // 5. Default workspace settings
-      await settingsRepo.create({
-        workspace_id: workspace.id,
-        currency: 'USD',
-        timezone: 'UTC',
-        language: 'en',
-      })
+        // 4. Workspace-level membership (needed for listForUser inner join)
+        await membershipsRepo.create({
+          user_id: input.userId,
+          organization_id: org.id,
+          workspace_id: workspace.id,
+          status: 'active',
+          joined_at: new Date().toISOString(),
+        })
 
-      // 6. Default executive profile
-      await profilesRepo.create({
-        user_id: input.userId,
-        workspace_id: workspace.id,
-        communication_style: 'direct',
-        ai_tone: 'professional',
-        meeting_style: 'structured',
-        decision_style: 'data-driven',
-      })
+        // 5. Default workspace settings
+        await settingsRepo.create({
+          workspace_id: workspace.id,
+          currency: 'USD',
+          timezone: 'UTC',
+          language: 'en',
+        })
 
-      // 7. Initial memories
-      await memoryService.createMemory({
-        workspaceId: workspace.id,
-        organizationId: org.id,
-        type: 'workspace_context',
-        title: 'Organization created',
-        content: 'Organization created. Executive workspace initialized.',
-        source: 'system',
-        entityType: 'organization',
-        entityId: org.id,
-        createdBy: input.userId,
-      })
+        // 6. Default executive profile
+        await profilesRepo.create({
+          user_id: input.userId,
+          workspace_id: workspace.id,
+          communication_style: 'direct',
+          ai_tone: 'professional',
+          meeting_style: 'structured',
+          decision_style: 'data-driven',
+        })
 
-      await memoryService.createMemory({
-        workspaceId: workspace.id,
-        organizationId: org.id,
-        type: 'org_goal',
-        title: 'Executive workspace initialized',
-        content: 'Executive workspace is ready. Business context will populate as data is added.',
-        source: 'system',
-        entityType: 'workspace',
-        entityId: workspace.id,
-        createdBy: input.userId,
-      })
+        // 7. Initial memories
+        await memoryService.createMemory({
+          workspaceId: workspace.id,
+          organizationId: org.id,
+          type: 'workspace_context',
+          title: 'Organization created',
+          content: 'Organization created. Executive workspace initialized.',
+          source: 'system',
+          entityType: 'organization',
+          entityId: org.id,
+          createdBy: input.userId,
+        })
 
-      // 8. Learning signal
-      await learningService.createLearningSignal({
-        workspaceId: workspace.id,
-        organizationId: org.id,
-        signalType: 'workspace_created',
-        entityType: 'workspace',
-        entityId: workspace.id,
-        severity: 'info',
-        title: 'Executive workspace created',
-        description: 'New executive workspace provisioned. Onboarding in progress.',
-      })
+        await memoryService.createMemory({
+          workspaceId: workspace.id,
+          organizationId: org.id,
+          type: 'org_goal',
+          title: 'Executive workspace initialized',
+          content: 'Executive workspace is ready. Business context will populate as data is added.',
+          source: 'system',
+          entityType: 'workspace',
+          entityId: workspace.id,
+          createdBy: input.userId,
+        })
 
-      // 9. Initial recommendation
-      await learningService.createRecommendation({
-        workspaceId: workspace.id,
-        organizationId: org.id,
-        userId: input.userId,
-        type: 'action',
-        priority: 'high',
-        title: 'Complete your company profile',
-        description: 'Add your company name, industry, and business goals so Executive AI can deliver relevant insights.',
-        actionLabel: 'Complete profile',
-        actionUrl: '/onboarding',
-      })
+        // 8. Learning signal
+        await learningService.createLearningSignal({
+          workspaceId: workspace.id,
+          organizationId: org.id,
+          signalType: 'workspace_created',
+          entityType: 'workspace',
+          entityId: workspace.id,
+          severity: 'info',
+          title: 'Executive workspace created',
+          description: 'New executive workspace provisioned. Onboarding in progress.',
+        })
 
-      // 10. Create onboarding state
-      const state = await stateRepo.create({
-        user_id: input.userId,
-        organization_id: org.id,
-        workspace_id: workspace.id,
-        current_step: 'welcome',
-        completed_steps: [],
-      })
+        // 9. Initial recommendation
+        await learningService.createRecommendation({
+          workspaceId: workspace.id,
+          organizationId: org.id,
+          userId: input.userId,
+          type: 'action',
+          priority: 'high',
+          title: 'Complete your company profile',
+          description: 'Add your company name, industry, and business goals so Executive AI can deliver relevant insights.',
+          actionLabel: 'Complete profile',
+          actionUrl: '/onboarding',
+        })
 
-      return {
-        organizationId: org.id,
-        workspaceId: workspace.id,
-        onboardingStateId: state.id,
+        // 10. Create onboarding state
+        const state = await stateRepo.create({
+          user_id: input.userId,
+          organization_id: org.id,
+          workspace_id: workspace.id,
+          current_step: 'welcome',
+          completed_steps: [],
+        })
+
+        return {
+          organizationId: org.id,
+          workspaceId: workspace.id,
+          onboardingStateId: state.id,
+        }
+      } catch (err) {
+        // Best-effort cleanup: delete the org (cascades to workspace/memberships via DB
+        // constraints) so the next provision attempt starts from a clean state rather
+        // than finding an orphaned org and creating a duplicate.
+        if (orgId) {
+          try {
+            await db.from('organizations').delete().eq('id', orgId)
+          } catch (cleanupErr: unknown) {
+            console.error('[provisioning] cleanup failed for org', orgId, cleanupErr)
+          }
+        }
+        throw err
       }
     },
   }
