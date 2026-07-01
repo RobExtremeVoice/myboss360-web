@@ -94,8 +94,8 @@ CREATE POLICY "crm email links owner can select"
       SELECT 1
       FROM gmail_threads gt
       JOIN google_connections gc ON gc.id = gt.connection_id
-      WHERE gt.id = gmail_thread_id
-        AND gt.workspace_id = workspace_id
+      WHERE gt.id = crm_email_links.gmail_thread_id
+        AND gt.workspace_id = crm_email_links.workspace_id
         AND gc.user_id = auth.uid()
     )
   );
@@ -107,8 +107,8 @@ CREATE POLICY "crm email links owner can insert"
       SELECT 1
       FROM gmail_threads gt
       JOIN google_connections gc ON gc.id = gt.connection_id
-      WHERE gt.id = gmail_thread_id
-        AND gt.workspace_id = workspace_id
+      WHERE gt.id = crm_email_links.gmail_thread_id
+        AND gt.workspace_id = crm_email_links.workspace_id
         AND gc.user_id = auth.uid()
     )
   );
@@ -120,8 +120,8 @@ CREATE POLICY "crm email links owner can update"
       SELECT 1
       FROM gmail_threads gt
       JOIN google_connections gc ON gc.id = gt.connection_id
-      WHERE gt.id = gmail_thread_id
-        AND gt.workspace_id = workspace_id
+      WHERE gt.id = crm_email_links.gmail_thread_id
+        AND gt.workspace_id = crm_email_links.workspace_id
         AND gc.user_id = auth.uid()
     )
   );
@@ -133,8 +133,8 @@ CREATE POLICY "crm email links owner can delete"
       SELECT 1
       FROM gmail_threads gt
       JOIN google_connections gc ON gc.id = gt.connection_id
-      WHERE gt.id = gmail_thread_id
-        AND gt.workspace_id = workspace_id
+      WHERE gt.id = crm_email_links.gmail_thread_id
+        AND gt.workspace_id = crm_email_links.workspace_id
         AND gc.user_id = auth.uid()
     )
   );
