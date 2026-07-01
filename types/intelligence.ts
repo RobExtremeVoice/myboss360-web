@@ -1,5 +1,6 @@
 import type { LearningSignal, Recommendation } from '@/types/learning'
 import type { Memory } from '@/types/memory'
+import type { PersonProfile } from '@/types/people'
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
 
@@ -96,6 +97,16 @@ export interface EmailIntelligenceSection {
   newRelationships: LearningSignal[]
 }
 
+export interface PeopleIntelligenceSection {
+  topRelationships: PersonProfile[]
+  staleRelationships: PersonProfile[]
+  newRelationships: PersonProfile[]
+  champions: PersonProfile[]
+  decisionMakers: PersonProfile[]
+  awaitingReply: PersonProfile[]
+  needingFollowUp: PersonProfile[]
+}
+
 export interface IntelligenceContext {
   workspaceId: string
   organizationId: string
@@ -108,6 +119,7 @@ export interface IntelligenceContext {
   todayAgenda: TodayAgendaItem[]
   importantTasks: ImportantTask[]
   emailIntelligence: EmailIntelligenceSection
+  peopleIntelligence: PeopleIntelligenceSection
   generatedAt: string
 }
 

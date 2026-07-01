@@ -5,8 +5,10 @@ import { createIntelligenceRepository } from '@/repositories/intelligence'
 import { createLearningService } from '@/services/learning/learning-service'
 import { createMemoryService } from '@/services/memory/memory-service'
 import { createWorkspacesRepository } from '@/repositories/workspaces'
+import { createPeopleService } from '@/services/people/people-service'
 import { intelligenceConfig } from '@/config/intelligence'
 import { extractTopOpportunities, extractTopRisks } from './recommendation-engine'
+import { peopleConfig } from '@/config/people'
 
 type GmailThreadRow = Database['public']['Tables']['gmail_threads']['Row']
 type GmailContactRow = Database['public']['Tables']['gmail_contacts']['Row']
@@ -40,6 +42,7 @@ export function createIntelligenceService(db: SupabaseClient<Database>) {
   const learningService = createLearningService(db)
   const memoryService = createMemoryService(db)
   const workspacesRepo = createWorkspacesRepository(db)
+  const peopleService = createPeopleService(db)
 
   return {
     // Assembles the full executive intelligence context for a workspace.
@@ -69,6 +72,7 @@ export function createIntelligenceService(db: SupabaseClient<Database>) {
         overdueFollowUpRows,
         topSenderRows,
         dealLinkRows,
+        allPeopleProfiles,
       ] =
         await Promise.all([
           intelligenceRepo.getWorkspaceSnapshot(workspace.id),
@@ -139,6 +143,9 @@ export function createIntelligenceService(db: SupabaseClient<Database>) {
             .order('confidence_score', { ascending: false })
             .limit(10)
             .then(({ data }) => data ?? []),
+          peopleService
+            .getProfiles(workspace.id, organizationId, null)
+            .catch(() => []),
         ])
 
       const topRisks = extractTopRisks(activeRecommendations)
@@ -191,6 +198,22 @@ export function createIntelligenceService(db: SupabaseClient<Database>) {
           .slice(0, 8),
       }
 
+      const N = peopleConfig.maxPeoplePerCategory
+      const byStrengthDesc = [...allPeopleProfiles].sort(
+        (a, b) => b.relationshipStrength - a.relationshipStrength
+      )
+      const peopleIntelligence = {
+        topRelationships: byStrengthDesc
+          .filter((p) => p.emailCount >= peopleConfig.minEmailsForTopRelationship)
+          .slice(0, N),
+        staleRelationships: allPeopleProfiles.filter((p) => p.isStale).slice(0, N),
+        newRelationships: allPeopleProfiles.filter((p) => p.isNewRelationship).slice(0, N),
+        champions: allPeopleProfiles.filter((p) => p.isChampion).slice(0, N),
+        decisionMakers: allPeopleProfiles.filter((p) => p.isDecisionMaker).slice(0, N),
+        awaitingReply: allPeopleProfiles.filter((p) => p.awaitingReply).slice(0, N),
+        needingFollowUp: allPeopleProfiles.filter((p) => p.followUpRequired).slice(0, N),
+      }
+
       return {
         workspaceId: workspace.id,
         organizationId,
@@ -203,6 +226,7 @@ export function createIntelligenceService(db: SupabaseClient<Database>) {
         todayAgenda: snapshot.todayAgenda,
         importantTasks: snapshot.importantTasks,
         emailIntelligence,
+        peopleIntelligence,
         generatedAt: new Date().toISOString(),
       }
     },

@@ -2106,6 +2106,282 @@ export type Database = {
         }
         Relationships: []
       }
+      people_profiles: {
+        Row: {
+          id: string
+          organization_id: string
+          workspace_id: string
+          user_id: string | null
+          email: string
+          full_name: string | null
+          job_title: string | null
+          company_name: string | null
+          company_id: string | null
+          crm_contact_id: string | null
+          gmail_contact_id: string | null
+          sources: string[]
+          relationship_strength: number
+          engagement_score: number
+          influence_score: number
+          is_champion: boolean
+          is_decision_maker: boolean
+          is_stale: boolean
+          is_new_relationship: boolean
+          email_count: number
+          meeting_count: number
+          last_interaction_at: string | null
+          first_interaction_at: string | null
+          awaiting_reply: boolean
+          follow_up_required: boolean
+          follow_up_due: string | null
+          metadata: Json
+          last_scored_at: string | null
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          workspace_id: string
+          user_id?: string | null
+          email: string
+          full_name?: string | null
+          job_title?: string | null
+          company_name?: string | null
+          company_id?: string | null
+          crm_contact_id?: string | null
+          gmail_contact_id?: string | null
+          sources?: string[]
+          relationship_strength?: number
+          engagement_score?: number
+          influence_score?: number
+          is_champion?: boolean
+          is_decision_maker?: boolean
+          is_stale?: boolean
+          is_new_relationship?: boolean
+          email_count?: number
+          meeting_count?: number
+          last_interaction_at?: string | null
+          first_interaction_at?: string | null
+          awaiting_reply?: boolean
+          follow_up_required?: boolean
+          follow_up_due?: string | null
+          metadata?: Json
+          last_scored_at?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          workspace_id?: string
+          user_id?: string | null
+          email?: string
+          full_name?: string | null
+          job_title?: string | null
+          company_name?: string | null
+          company_id?: string | null
+          crm_contact_id?: string | null
+          gmail_contact_id?: string | null
+          sources?: string[]
+          relationship_strength?: number
+          engagement_score?: number
+          influence_score?: number
+          is_champion?: boolean
+          is_decision_maker?: boolean
+          is_stale?: boolean
+          is_new_relationship?: boolean
+          email_count?: number
+          meeting_count?: number
+          last_interaction_at?: string | null
+          first_interaction_at?: string | null
+          awaiting_reply?: boolean
+          follow_up_required?: boolean
+          follow_up_due?: string | null
+          metadata?: Json
+          last_scored_at?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
+      people_relationships: {
+        Row: {
+          id: string
+          organization_id: string
+          workspace_id: string
+          user_id: string | null
+          person_profile_id: string
+          relationship_type: string
+          relationship_strength: number
+          source: string
+          source_id: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          workspace_id: string
+          user_id?: string | null
+          person_profile_id: string
+          relationship_type?: string
+          relationship_strength?: number
+          source?: string
+          source_id?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          workspace_id?: string
+          user_id?: string | null
+          person_profile_id?: string
+          relationship_type?: string
+          relationship_strength?: number
+          source?: string
+          source_id?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      people_interactions: {
+        Row: {
+          id: string
+          organization_id: string
+          workspace_id: string
+          user_id: string | null
+          person_profile_id: string
+          interaction_type: string
+          source: string
+          source_id: string | null
+          direction: string | null
+          subject: string | null
+          occurred_at: string
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          workspace_id: string
+          user_id?: string | null
+          person_profile_id: string
+          interaction_type: string
+          source: string
+          source_id?: string | null
+          direction?: string | null
+          subject?: string | null
+          occurred_at: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          workspace_id?: string
+          user_id?: string | null
+          person_profile_id?: string
+          interaction_type?: string
+          source?: string
+          source_id?: string | null
+          direction?: string | null
+          subject?: string | null
+          occurred_at?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      people_signals: {
+        Row: {
+          id: string
+          organization_id: string
+          workspace_id: string
+          user_id: string | null
+          person_profile_id: string
+          signal_type: string
+          severity: string
+          title: string
+          description: string | null
+          resolved_at: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          workspace_id: string
+          user_id?: string | null
+          person_profile_id: string
+          signal_type: string
+          severity?: string
+          title: string
+          description?: string | null
+          resolved_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          workspace_id?: string
+          user_id?: string | null
+          person_profile_id?: string
+          signal_type?: string
+          severity?: string
+          title?: string
+          description?: string | null
+          resolved_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      people_scores: {
+        Row: {
+          id: string
+          workspace_id: string
+          person_profile_id: string
+          relationship_strength: number
+          engagement_score: number
+          influence_score: number
+          scored_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          person_profile_id: string
+          relationship_strength?: number
+          engagement_score?: number
+          influence_score?: number
+          scored_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          person_profile_id?: string
+          relationship_strength?: number
+          engagement_score?: number
+          influence_score?: number
+          scored_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {

@@ -19,6 +19,11 @@ import { HighPriorityEmailsWidget } from "@/components/dashboard/widgets/HighPri
 import { RecentMemoriesWidget } from "@/components/dashboard/widgets/RecentMemoriesWidget";
 import { RecommendationsWidget } from "@/components/dashboard/widgets/RecommendationsWidget";
 import { KnowledgeUpdatesWidget } from "@/components/dashboard/widgets/KnowledgeUpdatesWidget";
+import { TopRelationshipsWidget } from "@/components/dashboard/widgets/TopRelationshipsWidget";
+import { StaleRelationshipsWidget } from "@/components/dashboard/widgets/StaleRelationshipsWidget";
+import { NewRelationshipsWidget } from "@/components/dashboard/widgets/NewRelationshipsWidget";
+import { ChampionsWidget } from "@/components/dashboard/widgets/ChampionsWidget";
+import { DecisionMakersWidget } from "@/components/dashboard/widgets/DecisionMakersWidget";
 import { dashboardPageContent } from "@/config/dashboard-metrics";
 import { createServerClient } from "@/lib/supabase/server";
 import { createExecutiveMetricsService } from "@/services/dashboard/executive-metrics-service";
@@ -139,6 +144,34 @@ export default async function DashboardPage() {
               documents={knowledgeDocs}
               totalCount={knowledgeDocs.length}
             />
+          </div>
+        </section>
+      ) : null}
+
+      {/* ── People Intelligence Widgets ── */}
+      {hasIntelligence && context.peopleIntelligence ? (
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-base font-semibold tracking-[-0.02em] text-slate-950">
+              People Intelligence
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Relationship strength, champions, and engagement signals
+            </p>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <TopRelationshipsWidget profiles={context.peopleIntelligence.topRelationships} />
+            <ChampionsWidget profiles={context.peopleIntelligence.champions} />
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <DecisionMakersWidget profiles={context.peopleIntelligence.decisionMakers} />
+            <NewRelationshipsWidget profiles={context.peopleIntelligence.newRelationships} />
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <StaleRelationshipsWidget profiles={context.peopleIntelligence.staleRelationships} />
           </div>
         </section>
       ) : null}

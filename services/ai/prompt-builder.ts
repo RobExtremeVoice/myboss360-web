@@ -156,6 +156,61 @@ Upcoming meetings: ${m.upcomingMeetingsCount}`)
     sections.push(`--- AVAILABLE TOOLS ---\n${toolList}\n\nUse tools when the user requests specific actions (create task, update deal stage, etc.).`)
   }
 
+  // People intelligence
+  const pi = context.peopleIntelligence
+  if (pi) {
+    const piLines: string[] = []
+
+    if (pi.topRelationships.length > 0) {
+      piLines.push(
+        `Top relationships: ${pi.topRelationships
+          .slice(0, 5)
+          .map((p) => `${p.fullName ?? p.email}${p.jobTitle ? ` (${p.jobTitle})` : ""}`)
+          .join(", ")}`
+      )
+    }
+
+    if (pi.champions.length > 0) {
+      piLines.push(
+        `Champions: ${pi.champions
+          .slice(0, 3)
+          .map((p) => p.fullName ?? p.email)
+          .join(", ")}`
+      )
+    }
+
+    if (pi.decisionMakers.length > 0) {
+      piLines.push(
+        `Decision makers: ${pi.decisionMakers
+          .slice(0, 3)
+          .map((p) => `${p.fullName ?? p.email}${p.jobTitle ? ` (${p.jobTitle})` : ""}`)
+          .join(", ")}`
+      )
+    }
+
+    if (pi.staleRelationships.length > 0) {
+      piLines.push(
+        `Going cold (${pi.staleRelationships.length}): ${pi.staleRelationships
+          .slice(0, 3)
+          .map((p) => p.fullName ?? p.email)
+          .join(", ")}`
+      )
+    }
+
+    if (pi.awaitingReply.length > 0) {
+      piLines.push(
+        `Awaiting reply from: ${pi.awaitingReply
+          .slice(0, 3)
+          .map((p) => p.fullName ?? p.email)
+          .join(", ")}`
+      )
+    }
+
+    if (piLines.length > 0) {
+      sections.push(`--- PEOPLE INTELLIGENCE ---\n${piLines.join('\n')}`)
+    }
+  }
+
   // Closing instruction
   sections.push(`--- INSTRUCTIONS ---
 Answer using the business context above.
