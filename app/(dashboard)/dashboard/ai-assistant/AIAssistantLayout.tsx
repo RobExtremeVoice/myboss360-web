@@ -4,19 +4,30 @@ import { useState } from "react"
 import { AIChatWindow } from "@/components/ai/AIChatWindow"
 import { AIConversationSidebar } from "@/components/ai/AIConversationSidebar"
 import { ExecutiveContextPanel } from "@/components/ai/ExecutiveContextPanel"
+import { BossIntelligencePanel } from "@/components/ai/BossIntelligencePanel"
+import { PromptPreviewPanel } from "@/components/ai/PromptPreviewPanel"
 import type { ConversationListItem } from "@/types/ai"
-import type { ExecutiveMetrics } from "@/types/intelligence"
+import type { ExecutiveMetrics, IntelligenceContext } from "@/types/intelligence"
+import type { BossIntelligenceSummary } from "@/types/executive"
 
 type Props = {
   initialConversations: ConversationListItem[]
   metrics: ExecutiveMetrics | null
   workspaceId?: string
+  context: IntelligenceContext | null
+  bossIntelligence: BossIntelligenceSummary | null
+  userFullName: string | null
+  devToolsEnabled: boolean
 }
 
 export function AIAssistantLayout({
   initialConversations,
   metrics,
   workspaceId,
+  context,
+  bossIntelligence,
+  userFullName,
+  devToolsEnabled,
 }: Props) {
   const [conversations, setConversations] =
     useState<ConversationListItem[]>(initialConversations)
@@ -68,9 +79,18 @@ export function AIAssistantLayout({
           onConversationCreated={handleConversationCreated}
         />
 
-        {/* Context panel */}
-        <div className="hidden w-64 shrink-0 flex-col gap-4 overflow-y-auto border-l border-black/6 bg-white/60 p-4 xl:flex">
+        {/* Right panel */}
+        <div className="hidden w-72 shrink-0 flex-col gap-4 overflow-y-auto border-l border-black/6 bg-white/60 p-4 xl:flex">
           <ExecutiveContextPanel metrics={metrics} />
+
+          {bossIntelligence ? (
+            <BossIntelligencePanel summary={bossIntelligence} />
+          ) : null}
+
+          {devToolsEnabled && context ? (
+            <PromptPreviewPanel context={context} userFullName={userFullName} />
+          ) : null}
+
           <div className="rounded-xl border border-black/6 bg-slate-50 p-3 text-xs text-slate-500">
             <p className="font-medium text-slate-700">About Mock Provider</p>
             <p className="mt-1 leading-5">
