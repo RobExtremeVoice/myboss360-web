@@ -1224,6 +1224,138 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_state: {
+        Row: {
+          id: string
+          user_id: string
+          organization_id: string
+          workspace_id: string
+          current_step: string
+          completed_steps: string[]
+          completed_at: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          organization_id: string
+          workspace_id: string
+          current_step?: string
+          completed_steps?: string[]
+          completed_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          organization_id?: string
+          workspace_id?: string
+          current_step?: string
+          completed_steps?: string[]
+          completed_at?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      workspace_settings: {
+        Row: {
+          id: string
+          workspace_id: string
+          company_name: string | null
+          industry: string | null
+          website: string | null
+          country: string | null
+          timezone: string
+          language: string
+          currency: string
+          business_goals: string[]
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          company_name?: string | null
+          industry?: string | null
+          website?: string | null
+          country?: string | null
+          timezone?: string
+          language?: string
+          currency?: string
+          business_goals?: string[]
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          company_name?: string | null
+          industry?: string | null
+          website?: string | null
+          country?: string | null
+          timezone?: string
+          language?: string
+          currency?: string
+          business_goals?: string[]
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      executive_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          workspace_id: string
+          full_name: string | null
+          role_title: string | null
+          communication_style: string
+          ai_tone: string
+          meeting_style: string
+          decision_style: string
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          workspace_id: string
+          full_name?: string | null
+          role_title?: string | null
+          communication_style?: string
+          ai_tone?: string
+          meeting_style?: string
+          decision_style?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          workspace_id?: string
+          full_name?: string | null
+          role_title?: string | null
+          communication_style?: string
+          ai_tone?: string
+          meeting_style?: string
+          decision_style?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {

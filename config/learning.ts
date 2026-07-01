@@ -9,6 +9,7 @@ export const signalTypeLabels: Record<SignalType, string> = {
   recurring_bottleneck: 'Recurring Bottleneck',
   performance_trend: 'Performance Trend',
   recommended_action: 'Recommended Action',
+  workspace_created: 'Workspace Created',
 }
 
 export const patternTypeLabels: Record<PatternType, string> = {

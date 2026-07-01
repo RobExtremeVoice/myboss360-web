@@ -7,6 +7,7 @@ export type SignalType =
   | 'recurring_bottleneck'
   | 'performance_trend'
   | 'recommended_action'
+  | 'workspace_created'
 
 export type SignalSeverity = 'info' | 'warning' | 'critical'
 
