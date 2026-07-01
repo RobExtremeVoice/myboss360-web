@@ -1,11 +1,17 @@
+import { randomBytes } from 'crypto'
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { createWorkspacesRepository } from '@/repositories/workspaces'
-import { buildAuthorizationUrl, encodeOAuthState } from '@/services/google/google-oauth-service'
+import {
+  buildAuthorizationUrl,
+  encodeOAuthState,
+  OAUTH_NONCE_COOKIE,
+} from '@/services/google/google-oauth-service'
 import { isGoogleConfigured } from '@/config/google'
 
 // GET /api/google/connect?workspaceId=<uuid>
-// Redirects to Google OAuth consent screen.
+// Generates a nonce, stores it in an httpOnly SameSite=Lax cookie, then
+// redirects to the Google OAuth consent screen with the nonce embedded in state.
 export async function GET(request: Request) {
   try {
     if (!isGoogleConfigured()) {
@@ -31,10 +37,21 @@ export async function GET(request: Request) {
       ? (workspaces.find((w) => w.id === workspaceIdHint) ?? workspaces[0])
       : workspaces[0]
 
-    const state = encodeOAuthState(workspace.id, user.id)
+    // Generate a cryptographically random nonce that binds this OAuth flow
+    // to this browser session. Stored in an httpOnly cookie; verified on callback.
+    const nonce = randomBytes(32).toString('base64url')
+    const state = encodeOAuthState(workspace.id, nonce)
     const authUrl = buildAuthorizationUrl(state)
 
-    return NextResponse.redirect(authUrl)
+    const response = NextResponse.redirect(authUrl)
+    response.cookies.set(OAUTH_NONCE_COOKIE, nonce, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/api/google/callback',
+      maxAge: 600, // 10 minutes — enough time to complete the OAuth flow
+    })
+    return response
   } catch (err) {
     console.error('[google/connect] error:', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })

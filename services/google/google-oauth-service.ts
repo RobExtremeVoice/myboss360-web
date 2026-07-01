@@ -54,20 +54,30 @@ export function buildAuthorizationUrl(state: string): string {
 }
 
 // ─── State helpers ────────────────────────────────────────────────────────────
+// State encodes workspaceId + a random nonce. The nonce is also stored in an
+// httpOnly SameSite=Lax cookie on the /connect response, giving CSRF protection:
+// an attacker who crafts a state value cannot supply the matching cookie.
 
-export function encodeOAuthState(workspaceId: string, userId: string): string {
-  return Buffer.from(JSON.stringify({ workspaceId, userId })).toString('base64url')
+export function encodeOAuthState(workspaceId: string, nonce: string): string {
+  // state = base64url("<workspaceId>:<nonce>")
+  return Buffer.from(`${workspaceId}:${nonce}`).toString('base64url')
 }
 
-export function decodeOAuthState(state: string): { workspaceId: string; userId: string } | null {
+export function decodeOAuthState(state: string): { workspaceId: string; nonce: string } | null {
   try {
-    const obj = JSON.parse(Buffer.from(state, 'base64url').toString('utf8'))
-    if (typeof obj.workspaceId !== 'string' || typeof obj.userId !== 'string') return null
-    return obj as { workspaceId: string; userId: string }
+    const decoded = Buffer.from(state, 'base64url').toString('utf8')
+    const colonIdx = decoded.indexOf(':')
+    if (colonIdx < 0) return null
+    const workspaceId = decoded.slice(0, colonIdx)
+    const nonce = decoded.slice(colonIdx + 1)
+    if (!workspaceId || !nonce) return null
+    return { workspaceId, nonce }
   } catch {
     return null
   }
 }
+
+export const OAUTH_NONCE_COOKIE = 'google_oauth_nonce'
 
 // ─── Token exchange and refresh ───────────────────────────────────────────────
 
