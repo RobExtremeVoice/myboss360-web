@@ -57,3 +57,38 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
   }
 }
+
+// DELETE /api/google/connect?workspaceId=<uuid>
+// Removes the Google connection for the authenticated user in the specified workspace.
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const url = new URL(request.url)
+    const workspaceIdHint = url.searchParams.get('workspaceId') ?? undefined
+
+    const workspacesRepo = createWorkspacesRepository(supabase)
+    const workspaces = await workspacesRepo.listForUser(user.id)
+    if (workspaces.length === 0) {
+      return NextResponse.json({ error: 'No workspace found.' }, { status: 404 })
+    }
+    const workspace = workspaceIdHint
+      ? (workspaces.find((w) => w.id === workspaceIdHint) ?? workspaces[0])
+      : workspaces[0]
+
+    const { error } = await supabase
+      .from('google_connections')
+      .delete()
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[DELETE /api/google/connect]', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
